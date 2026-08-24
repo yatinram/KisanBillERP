@@ -1,0 +1,9 @@
+.vs/
+*.vsidx
+*.suo
+*.user
+bin/
+obj/
+*.dll
+*.pdb
+packages/

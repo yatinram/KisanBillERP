@@ -1,0 +1,16 @@
+<Window x:Class="KrushiBillERP.Views.PaymentReceiptPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Payment Receipt Preview" Height="800" Width="600" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+            <Button x:Name="BtnPrint" Content="Print / Save PDF" Click="BtnPrint_Click" Margin="4" Padding="8,4" />
+            <Button x:Name="BtnClose" Content="Close" Click="BtnClose_Click" Margin="4" Padding="8,4" />
+        </StackPanel>
+        <FlowDocumentScrollViewer x:Name="DocViewer" Grid.Row="1" />
+    </Grid>
+</Window>

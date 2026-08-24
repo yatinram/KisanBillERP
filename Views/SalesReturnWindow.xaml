@@ -1,0 +1,210 @@
+<Window x:Class="KrushiBillERP.Views.SalesReturnWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="New Sales Return" Height="700" Width="920"
+        WindowStartupLocation="CenterOwner" Background="#F4F6F5">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AccentGreen" Color="#2E7D32"/>
+        <SolidColorBrush x:Key="HeadingText" Color="#1E2422"/>
+        <SolidColorBrush x:Key="MutedText" Color="#6C757D"/>
+        <SolidColorBrush x:Key="CardBg" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="CardBorder" Color="#E7EBE8"/>
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#374151"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style x:Key="FormTextBox" TargetType="TextBox">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <StackPanel>
+                <TextBlock x:Name="TxtHeaderTitle" Text="New Sales Return (માલ પરત / રિટર્ન)" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}"/>
+                <TextBlock x:Name="TxtHeaderSubtitle" Text="Process farmer returned items, Restore Stock and adjuSt Udhar / bill balance" FontSize="12" Foreground="{StaticResource MutedText}" Margin="0,2,0,0"/>
+            </StackPanel>
+            <Button Content="✕" Click="BtnClose_Click" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Foreground="#6B7280" Cursor="Hand"/>
+        </Grid>
+
+        <!-- Body -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Invoice / Farmer Selector Card -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                            <TextBlock Text="FARMER &amp; BILL DETAILS" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentGreen}"/>
+                            <Button x:Name="BtnSelectInvoice" Content="St Select Farmer Bill / Invoice" Click="BtnSelectInvoice_Click" HorizontalAlignment="Right" Background="#E8F5E9" Foreground="#2E7D32" FontWeight="Bold" BorderThickness="0" Padding="12,6" Cursor="Hand"/>
+                        </Grid>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="Farmer Name" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TxtFarmerName" Style="{StaticResource FormTextBox}" IsReadOnly="True" Background="#F9FAFB"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <TextBlock Text="Bill / Invoice No." Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TxtInvoiceNo" Style="{StaticResource FormTextBox}" IsReadOnly="True" Background="#F9FAFB"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                                <TextBlock Text="Bill Date" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TxtInvoiceDate" Style="{StaticResource FormTextBox}" IsReadOnly="True" Background="#F9FAFB"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Udhar Balance (₹)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TxtUdharBalance" Style="{StaticResource FormTextBox}" IsReadOnly="True" Background="#FEF2F2" Foreground="#C62828" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Return Items Table -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="SELECT RETURN QUANTITY FOR PRODUCTS" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" Margin="0,0,0,10"/>
+
+                        <DataGrid x:Name="GridItems" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column" RowHeight="38"
+                                  Background="White" BorderThickness="1" BorderBrush="#E5EAE7">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#F8FAF9"/>
+                                    <Setter Property="Foreground" Value="#495057"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Padding" Value="8,6"/>
+                                </Style>
+                            </DataGrid.Resources>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding SalesReturnItemId}" Width="35" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="*" IsReadOnly="True" FontWeight="Bold"/>
+                                <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="85" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Expiry" Binding="{Binding ExpiryDate, StringFormat='dd/MM/yy'}" Width="75" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Billed Qty" Binding="{Binding PurchasedQuantity}" Width="75" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Returnable" Binding="{Binding ReturnableQuantity}" Width="80" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="Return Qty *" Width="90">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding ReturnQuantity, UpdateSourceTrigger=PropertyChanged}" TextChanged="ReturnQty_TextChanged" FontWeight="Bold" Foreground="#1B5E20" TextAlignment="Center" Height="28" VerticalContentAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Rate (₹)" Binding="{Binding Rate, StringFormat='₹ {0:N2}'}" Width="80" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="GST %" Binding="{Binding GSTPercent, StringFormat='{}{0}%'}" Width="60" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Return Amount" Binding="{Binding Amount, StringFormat='₹ {0:N2}'}" Width="100" IsReadOnly="True" FontWeight="Bold"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Return Reason & Adjustment Section -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="RETURN DETAILS &amp; Adjustment" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" Margin="0,0,0,10"/>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="Adjustment Type *" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="CmbAdjustmentType" Height="34" VerticalContentAlignment="Center">
+                                    <ComboBoxItem Content="Udhar / Bill Balance Adjustment" IsSelected="True"/>
+                                    <ComboBoxItem Content="Cash Refund"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="Return Reason *" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="CmbReason" Height="34" VerticalContentAlignment="Center">
+                                    <ComboBoxItem Content="Defective / Damaged Stock" IsSelected="True"/>
+                                    <ComboBoxItem Content="Wrong Item Purchased"/>
+                                    <ComboBoxItem Content="Expired Item"/>
+                                    <ComboBoxItem Content="Customer Excess Purchase Return"/>
+                                    <ComboBoxItem Content="Other"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock Text="Notes / Remarks" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TxtNotes" Style="{StaticResource FormTextBox}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="6,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="RETURN SUMMARY" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" Margin="0,0,0,10"/>
+
+                            <Grid Margin="0,4">
+                                <TextBlock Text="Subtotal:" Foreground="{StaticResource MutedText}"/>
+                                <TextBlock x:Name="TxtSubTotal" Text="₹ 0.00" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                            </Grid>
+                            <Grid Margin="0,4">
+                                <TextBlock Text="GST Amount:" Foreground="{StaticResource MutedText}"/>
+                                <TextBlock x:Name="TxtGstAmount" Text="₹ 0.00" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                            </Grid>
+                            <Grid Margin="0,4">
+                                <TextBlock Text="Round Off:" Foreground="{StaticResource MutedText}"/>
+                                <TextBlock x:Name="TxtRoundOff" Text="₹ 0.00" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Separator Margin="0,8"/>
+                            <Grid Margin="0,4">
+                                <TextBlock Text="TOTAL RETURN AMOUNT:" FontWeight="Bold" FontSize="14" Foreground="#1B5E20"/>
+                                <TextBlock x:Name="TxtGrandTotal" Text="₹ 0.00" HorizontalAlignment="Right" FontWeight="Bold" FontSize="16" Foreground="#1B5E20"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer Buttons -->
+        <Grid Grid.Row="2" Margin="0,14,0,0">
+            <Button Content="Cancel" Click="BtnClose_Click" Background="#E0E0E0" Foreground="#333" Width="100" Height="38" HorizontalAlignment="Left" Cursor="Hand"/>
+            <Button x:Name="BtnSaveReturn" Content="✓ Save Sales Return" Click="BtnSaveReturn_Click" Background="#2E7D32" Foreground="White" FontWeight="Bold" Width="180" Height="38" HorizontalAlignment="Right" Cursor="Hand"/>
+        </Grid>
+    </Grid>
+</Window>

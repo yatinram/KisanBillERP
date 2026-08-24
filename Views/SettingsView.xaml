@@ -1,0 +1,109 @@
+<UserControl x:Class="KrushiBillERP.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="800"
+             Background="White">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Company &amp; Business Settings" FontSize="24" FontWeight="Bold" Margin="0,0,0,5" Foreground="#2E7D32"/>
+        <TextBlock Grid.Row="1" Text="Manage shop details, GSTIN, bank info, and invoice terms" FontSize="14" Foreground="Gray" Margin="0,0,0,20"/>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,0,10">
+                <!-- Shop Details Section -->
+                <TextBlock Text="SHOP &amp; LICENSE DETAILS" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" Foreground="#2E7D32"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Shop Name:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtShopName" Grid.Row="0" Grid.Column="1" Margin="5" Padding="5"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Address:" VerticalAlignment="Top" Margin="0,0,0,5"/>
+                    <TextBox x:Name="TxtShopAddress" Grid.Row="1" Grid.Column="1" Margin="5" Padding="5" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Phone:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtShopPhone" Grid.Row="2" Grid.Column="1" Margin="5" Padding="5"/>
+                    
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="GSTIN:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtGSTIN" Grid.Row="3" Grid.Column="1" Margin="5" Padding="5"/>
+                    
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="License Number:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtLicenseNumber" Grid.Row="4" Grid.Column="1" Margin="5" Padding="5"/>
+                </Grid>
+
+                <!-- Bank Details Section -->
+                <TextBlock Text="BANK &amp; PAYMENT DETAILS" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" Foreground="#2E7D32"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Bank Name:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtBankName" Grid.Row="0" Grid.Column="1" Margin="5" Padding="5"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Account Holder Name:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtAccountName" Grid.Row="1" Grid.Column="1" Margin="5" Padding="5"/>
+                    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Account Number:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtAccountNumber" Grid.Row="2" Grid.Column="1" Margin="5" Padding="5"/>
+                    
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="IFSC Code:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtIFSCCode" Grid.Row="3" Grid.Column="1" Margin="5" Padding="5"/>
+                    
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="UPI ID:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtUpiId" Grid.Row="4" Grid.Column="1" Margin="5" Padding="5"/>
+                </Grid>
+
+                <!-- Invoice Terms Section -->
+                <TextBlock Text="INVOICE TERMS &amp; FOOTER" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" Foreground="#2E7D32"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Bill Terms &amp; Conditions:" VerticalAlignment="Top" Margin="0,0,0,5"/>
+                    <TextBox x:Name="TxtTerms" Grid.Row="0" Grid.Column="1" Margin="5" Padding="5" Height="80" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Footer Message:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtFooter" Grid.Row="1" Grid.Column="1" Margin="5" Padding="5"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Save Button -->
+        <Button Grid.Row="3" x:Name="BtnSave" Content="&#x1F4BE; Save Settings" Style="{StaticResource PrimaryButton}" 
+                HorizontalAlignment="Right" Padding="20,10" Margin="0,20,0,0" Click="BtnSave_Click"/>
+    </Grid>
+</UserControl>

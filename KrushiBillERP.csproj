@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
+    <AssemblyName>KrushiBillERP</AssemblyName>
+    <RootNamespace>KrushiBillERP</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    <PackageReference Include="OxyPlot.Core" Version="2.2.0" />
+    <PackageReference Include="OxyPlot.Wpf" Version="2.2.0" />
+    <PackageReference Include="PDFsharp" Version="6.2.0" />
+    <!-- Selenium packages for WhatsApp auto-attach -->
+    <PackageReference Include="Selenium.WebDriver" Version="4.11.0" />
+    <PackageReference Include="Selenium.Support" Version="4.11.0" />
+    <!-- ChromeDriver package: version resolved to 116.0.5845.9600 by NuGet; update if needed -->
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="116.0.5845.9600" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\logo.ico" />
+    <Resource Include="Assets\logo.png" />
+  </ItemGroup>
+
+</Project>

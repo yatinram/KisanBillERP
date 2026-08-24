@@ -1,0 +1,32 @@
+<Window x:Class="KrushiBillERP.Views.FarmerDetailsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Farmer Details" Height="260" Width="420" WindowStartupLocation="CenterOwner" ResizeMode="NoReSize">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="FARMER DETAILS" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+
+        <StackPanel Grid.Row="1" Margin="0,12,0,12">
+            <StackPanel Orientation="Horizontal" Margin="0,6">
+                <TextBlock Text="Farmer Name" Width="120" FontWeight="SemiBold"/>
+                <TextBlock x:Name="TxtName" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6">
+                <TextBlock Text="Mobile Number" Width="120" FontWeight="SemiBold"/>
+                <TextBlock x:Name="TxtMobile" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6">
+                <TextBlock Text="Village" Width="120" FontWeight="SemiBold"/>
+                <TextBlock x:Name="TxtVillage" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6">
+                <TextBlock Text="Status" Width="120" FontWeight="SemiBold"/>
+                <TextBlock x:Name="TxtStatus" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

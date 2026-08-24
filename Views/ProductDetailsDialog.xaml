@@ -1,0 +1,17 @@
+<Window x:Class="KrushiBillERP.Views.ProductDetailsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Product Details" Height="420" Width="600" WindowStartupLocation="CenterOwner" ResizeMode="NoReSize">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Product Details" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+
+        <StackPanel Grid.Row="1" Margin="0,12,0,0">
+            <TextBlock x:Name="TxtBlock" TextWrapping="Wrap" FontSize="13"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,294 @@
+<Page x:Class="KrushiBillERP.Views.DashboardHomeView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:oxy="http://oxyplot.org/wpf"
+      Title="Bill Dashboard"
+      Background="{StaticResource LightBg}">
+	<Page.Resources>
+		<!-- Card Style: refined shadow 🔄 subtle border -->
+		<Style x:Key="CardStyle" TargetType="Border">
+			<Setter Property="Background" Value="White"/>
+			<Setter Property="CornerRadius" Value="14"/>
+			<Setter Property="BorderBrush" Value="#F0F0EC"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Effect">
+				<Setter.Value>
+					<DropShadowEffect Color="#000000" Opacity="0.05" BlurRadius="18" ShadowDepth="3" Direction="270"/>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style x:Key="LinkButton" TargetType="Button">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="FontSize" Value="12.5"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<ContentPresenter/>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="True">
+					<Setter Property="Foreground" Value="{StaticResource PrimaryDark}"/>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+
+		<Style x:Key="GridHeaderStyle" TargetType="DataGridColumnHeader">
+			<Setter Property="Background" Value="#FAFAF9"/>
+			<Setter Property="Foreground" Value="#8A8A85"/>
+			<Setter Property="FontSize" Value="11.5"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Padding" Value="10,12"/>
+			<Setter Property="BorderThickness" Value="0,0,0,1"/>
+			<Setter Property="BorderBrush" Value="#EFEFEC"/>
+			<Setter Property="HorizontalContentAlignment" Value="Left"/>
+		</Style>
+		<Style x:Key="CleanGrid" TargetType="DataGrid" BasedOn="{StaticResource PremiumDataGridStyle}">
+			<Setter Property="AutoGenerateColumns" Value="False"/>
+			<Setter Property="IsReadOnly" Value="True"/>
+			<Setter Property="HeadersVisibility" Value="Column"/>
+			<Setter Property="GridLinesVisibility" Value="Horizontal"/>
+			<Setter Property="HorizontalGridLinesBrush" Value="#F1F1EE"/>
+			<Setter Property="RowHeaderWidth" Value="0"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="RowHeight" Value="38"/>
+			<Setter Property="FontSize" Value="12.5"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="ColumnHeaderStyle" Value="{StaticResource GridHeaderStyle}"/>
+		</Style>
+
+
+
+
+
+		<!-- Dropdown (period selector) -->
+		<Style x:Key="ModernCombo" TargetType="ComboBox">
+			<Setter Property="Background" Value="White"/>
+			<Setter Property="BorderBrush" Value="#E5E5E0"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Padding" Value="14,0,8,0"/>
+			<Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ComboBox">
+						<Grid>
+							<ToggleButton x:Name="ToggleBtn"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Focusable="False" ClickMode="Press">
+								<ToggleButton.Template>
+									<ControlTemplate TargetType="ToggleButton">
+										<Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+											<Grid>
+												<Grid.ColumnDefinitions>
+													<ColumnDefinition Width="*"/>
+													<ColumnDefinition Width="26"/>
+												</Grid.ColumnDefinitions>
+								<ContentPresenter Grid.Column="0" Margin="{Binding Padding, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+																   VerticalAlignment="Center" HorizontalAlignment="Left"
+																   Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
+												<TextBlock Grid.Column="1" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="9"
+                                                           Foreground="Gray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+											</Grid>
+										</Border>
+									</ControlTemplate>
+								</ToggleButton.Template>
+							</ToggleButton>
+							<Popup x:Name="Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+								<Border Background="White" BorderBrush="#E5E5E0" BorderThickness="1" CornerRadius="8" Margin="0,4,0,0"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+									<Border.Effect>
+										<DropShadowEffect Color="#000000" Opacity="0.1" BlurRadius="14" ShadowDepth="2"/>
+									</Border.Effect>
+									<ScrollViewer Margin="4">
+										<ItemsPresenter/>
+									</ScrollViewer>
+								</Border>
+							</Popup>
+						</Grid>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style TargetType="ComboBoxItem">
+			<Setter Property="Padding" Value="10,8"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ComboBoxItem">
+						<Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+							<ContentPresenter/>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsHighlighted" Value="True">
+								<Setter TargetName="Bd" Property="Background" Value="#F0F4F1"/>
+							</Trigger>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryColor}"/>
+								<Setter Property="Foreground" Value="White"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Page.Resources>
+
+	<ScrollViewer VerticalScrollBarVisibility="Auto">
+		<StackPanel Margin="24">
+
+			<!-- Header -->
+			<DockPanel Margin="0,0,0,22">
+				<StackPanel DockPanel.Dock="Left">
+					<TextBlock x:Name="TxtWelcome" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+					<TextBlock Text="Here's what's happening in your shop today" FontSize="12.5" Foreground="#9A9A94" Margin="0,4,0,0"/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right" VerticalAlignment="Center">
+					<ComboBox x:Name="CmbPeriod" Style="{StaticResource ModernCombo}" Width="140" Height="38" Margin="0,0,0,10" SelectionChanged="CmbPeriod_SelectionChanged">
+						<ComboBoxItem Tag="today" IsSelected="True">Today</ComboBoxItem>
+						<ComboBoxItem Tag="week" Padding="10,8">This week</ComboBoxItem>
+						<ComboBoxItem Tag="month" Padding="10,8">This month</ComboBoxItem>
+						<ComboBoxItem Tag="year" Padding="10,8">This year</ComboBoxItem>
+					</ComboBox>
+					<Button x:Name="BtnRefresh" Style="{StaticResource RefreshButton}" Width="112" Height="38" Click="BtnRefresh_Click"/>
+				</StackPanel>
+			</DockPanel>
+
+			<!-- Summary cards -->
+			<UniformGrid Columns="4" Margin="0,0,0,20">
+				<Border Style="{StaticResource CardStyle}" Margin="0,0,14,0" Padding="18">
+					<StackPanel>
+						<Border Width="38" Height="38" CornerRadius="10" Background="#E7F4E9" HorizontalAlignment="Left" Margin="0,0,0,12">
+							<TextBlock Text="💰" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Text="SALES REVENUE" Foreground="#9A9A94" FontSize="10.5" FontWeight="SemiBold"/>
+						<TextBlock x:Name="TxtSalesRevenue" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,4,0,0"/>
+					</StackPanel>
+				</Border>
+				<Border Style="{StaticResource CardStyle}" Margin="0,0,14,0" Padding="18">
+					<StackPanel>
+						<Border Width="38" Height="38" CornerRadius="10" Background="#FDF1DC" HorizontalAlignment="Left" Margin="0,0,0,12">
+							<TextBlock Text="🧾" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Text="CREDIT (UDHAR)" Foreground="#9A9A94" FontSize="10.5" FontWeight="SemiBold"/>
+						<TextBlock x:Name="TxtUdharRevenue" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,4,0,0"/>
+					</StackPanel>
+				</Border>
+				<Border Style="{StaticResource CardStyle}" Margin="0,0,14,0" Padding="18">
+					<StackPanel>
+						<Border Width="38" Height="38" CornerRadius="10" Background="#E5EEFB" HorizontalAlignment="Left" Margin="0,0,0,12">
+							<TextBlock Text="📈" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Text="TOTAL REVENUE" Foreground="#9A9A94" FontSize="10.5" FontWeight="SemiBold"/>
+						<TextBlock x:Name="TxtTotalRevenue" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,4,0,0"/>
+					</StackPanel>
+				</Border>
+				<Border Style="{StaticResource CardStyle}" Padding="18">
+					<StackPanel>
+						<Border Width="38" Height="38" CornerRadius="10" Background="#F1E9FB" HorizontalAlignment="Left" Margin="0,0,0,12">
+							<TextBlock Text="📦" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Text="TOTAL PRODUCTS" Foreground="#9A9A94" FontSize="10.5" FontWeight="SemiBold"/>
+						<TextBlock x:Name="TxtTotalProducts" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,4,0,0"/>
+					</StackPanel>
+				</Border>
+			</UniformGrid>
+
+			<!-- Main content: Sales/Purchase table + Revenue breakdown -->
+			<Grid Margin="0,0,0,20">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="3*"/>
+					<ColumnDefinition Width="2*"/>
+				</Grid.ColumnDefinitions>
+
+				<Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,14,0">
+					<StackPanel>
+						<TextBlock Text="Sales &amp; Purchase Overview" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,12"/>
+						<oxy:PlotView x:Name="PlotSalesPurchase" Height="300" Background="Transparent"/>
+					</StackPanel>
+				</Border>
+
+				<Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="18">
+					<StackPanel>
+						<TextBlock Text="Revenue Breakdown" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,14"/>
+						<StackPanel>
+							<Grid Margin="0,0,0,14">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+									<Border Width="8" Height="8" CornerRadius="4" Background="#2E7D32" Margin="0,0,8,0"/>
+									<TextBlock Text="Cash" Foreground="#6B6B65"/>
+								</StackPanel>
+								<TextBlock x:Name="TxtCashAmount" FontWeight="SemiBold" HorizontalAlignment="Right" Foreground="{StaticResource TextDark}"/>
+							</Grid>
+							<Grid Margin="0,0,0,14">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+									<Border Width="8" Height="8" CornerRadius="4" Background="#378ADD" Margin="0,0,8,0"/>
+									<TextBlock Text="Online" Foreground="#6B6B65"/>
+								</StackPanel>
+								<TextBlock x:Name="TxtOnlineAmount" FontWeight="SemiBold" HorizontalAlignment="Right" Foreground="{StaticResource TextDark}"/>
+							</Grid>
+							<Grid Margin="0,0,0,14">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+									<Border Width="8" Height="8" CornerRadius="4" Background="#F9A825" Margin="0,0,8,0"/>
+									<TextBlock Text="Credit (Udhar)" Foreground="#6B6B65"/>
+								</StackPanel>
+								<TextBlock x:Name="TxtUdharAmount" FontWeight="SemiBold" HorizontalAlignment="Right" Foreground="{StaticResource TextDark}"/>
+							</Grid>
+							<Separator Margin="0,4,0,12" Background="#EFEFEC"/>
+							<Grid>
+								<TextBlock Text="Total" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Left"/>
+								<TextBlock x:Name="TxtBreakdownTotal" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}" HorizontalAlignment="Right" FontSize="15"/>
+							</Grid>
+						</StackPanel>
+					</StackPanel>
+				</Border>
+			</Grid>
+
+			<!-- Expiring products (Full Width - Image 1) -->
+			<Border Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,0,20">
+				<StackPanel>
+					<DockPanel Margin="0,0,0,12">
+						<TextBlock Text="Products expiring in next 15 days" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextDark}" DockPanel.Dock="Left"/>
+					</DockPanel>
+					<DataGrid x:Name="GridExpiries" Style="{StaticResource CleanGrid}" Height="230" VerticalScrollBarVisibility="Auto">
+						<DataGrid.Columns>
+							<DataGridTextColumn Header="Product Name" Binding="{Binding Name}" Width="2*"/>
+							<DataGridTextColumn Header="Batch No" Binding="{Binding BatchNo}" Width="1*"/>
+							<DataGridTextColumn Header="Current Stock" Binding="{Binding StockQty}" Width="1*"/>
+							<DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat=d}" Width="1*"/>
+							<DataGridTextColumn Header="Days Left" Binding="{Binding DaysRemaining}" Width="1*"/>
+							<DataGridTextColumn Header="Status" Binding="{Binding ExpiryStatus}" Width="1*"/>
+						</DataGrid.Columns>
+					</DataGrid>
+				</StackPanel>
+			</Border>
+
+			<!-- Low Stock alert (Full Width - Image 1) -->
+			<Border Style="{StaticResource CardStyle}" Padding="18">
+				<StackPanel>
+					<DockPanel Margin="0,0,0,12">
+						<TextBlock Text="Low stock alert" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextDark}" DockPanel.Dock="Left"/>
+					</DockPanel>
+					<DataGrid x:Name="GridLowStock" Style="{StaticResource CleanGrid}" Height="230" VerticalScrollBarVisibility="Auto">
+						<DataGrid.Columns>
+							<DataGridTextColumn Header="Product Name" Binding="{Binding Name}" Width="2*"/>
+							<DataGridTextColumn Header="Current Stock" Binding="{Binding StockQty}" Width="1*"/>
+							<DataGridTextColumn Header="Minimum Stock" Binding="{Binding ReorderLevel}" Width="1*"/>
+							<DataGridTextColumn Header="Status" Binding="{Binding StockStatus}" Width="1*"/>
+						</DataGrid.Columns>
+					</DataGrid>
+				</StackPanel>
+			</Border>
+
+		</StackPanel>
+	</ScrollViewer>
+</Page>
