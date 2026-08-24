@@ -37,29 +37,6 @@
             </Setter>
         </Style>
 
-        <Style x:Key="RefreshButton" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#374151"/>
-            <Setter Property="BorderBrush" Value="#D1D5DB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#F3F4F6"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style x:Key="SearchTextBox" TargetType="TextBox">
             <Setter Property="Height" Value="40"/>
             <Setter Property="FontSize" Value="14"/>
@@ -195,8 +172,8 @@
                                    IsHitTestVisible="False"/>
                     </Grid>
 
-                    <Button Grid.Column="2" x:Name="BtnRefresh" Content="↻ Refresh" Style="{StaticResource RefreshButton}"
-                            Padding="12,8" Click="BtnRefresh_Click"/>
+                    <Button Grid.Column="2" x:Name="BtnRefresh" Style="{StaticResource RefreshButton}"
+                            Width="112" Height="38" Click="BtnRefresh_Click"/>
                 </Grid>
 
                 <!-- DataGrid -->

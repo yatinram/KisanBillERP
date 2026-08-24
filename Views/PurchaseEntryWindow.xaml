@@ -1,7 +1,7 @@
 <Window x:Class="KrushiBillERP.Views.PurchaseEntryWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="New Purchase Entry" Height="820" Width="1040"
+        Title="New Purchase Entry" Height="840" Width="1060"
         WindowStartupLocation="CenterOwner"
         Background="#F4F6F5">
 
@@ -78,6 +78,58 @@
             <Setter Property="BorderBrush" Value="#D1D5DB"/>
             <Setter Property="Background" Value="White"/>
         </Style>
+
+        <!-- Primary Green Button -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource PrimaryDark}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Cancel Button -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#374151"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F3F4F6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="20">
@@ -129,7 +181,7 @@
                                 <ColumnDefinition Width="1.5*"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Supplier Name (MUSt BE TEXT INPUT) -->
+                            <!-- Supplier Name -->
                             <StackPanel Grid.Column="0" Margin="0,0,12,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Supplier Name" Style="{StaticResource FieldLabel}"/>
@@ -182,7 +234,7 @@
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Product Name" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
@@ -198,7 +250,7 @@
                                 </Grid>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Company Name" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
@@ -206,7 +258,7 @@
                                 <TextBox x:Name="TxtCompany" Style="{StaticResource FormTextBox}"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="2" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Category" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
@@ -214,7 +266,7 @@
                                 <ComboBox x:Name="CmbCategory" Style="{StaticResource FormComboBox}" IsEditable="True"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="3" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="3" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Pack Size" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
@@ -240,12 +292,12 @@
                                 <ColumnDefinition Width="1.4*"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
                                 <TextBlock Text="HSN Code" Style="{StaticResource FieldLabel}"/>
                                 <TextBox x:Name="TxtHSN" Style="{StaticResource FormTextBox}"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Purchase Price (₹)" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
@@ -253,7 +305,7 @@
                                 <TextBox x:Name="TxtPurchasePrice" Style="{StaticResource FormTextBox}" TextChanged="ProductInput_TextChanged"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="2" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
                                 <TextBlock Text="GST %" Style="{StaticResource FieldLabel}"/>
                                 <TextBox x:Name="TxtGST" Style="{StaticResource FormTextBox}" TextChanged="ProductInput_TextChanged"/>
                             </StackPanel>
@@ -276,7 +328,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Expiry Date" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
@@ -284,7 +336,7 @@
                                 <DatePicker x:Name="DpExpiry" Height="36" VerticalContentAlignment="Center"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="0,0,0,10">
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Purchase Qty" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
@@ -297,7 +349,7 @@
                                 <TextBox x:Name="TxtFreeQty" Style="{StaticResource FormTextBox}"/>
                             </StackPanel>
 
-                            <Button x:Name="BtnAddProduct" Grid.Column="3" Content="🔄 Add Product"
+                            <Button x:Name="BtnAddProduct" Grid.Column="3" Content="+ Add Product"
                                     Height="36" Padding="18,0" VerticalAlignment="Bottom"
                                     Click="BtnAddProduct_Click" Style="{StaticResource PrimaryButton}"/>
                         </Grid>
@@ -310,7 +362,7 @@
                         <TextBlock Text="PURCHASE ITEMS" Style="{StaticResource SectionHeader}"/>
 
                         <DataGrid x:Name="GridItems" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column" RowHeight="36"
+                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column" RowHeight="38"
                                   MaxHeight="260" Background="White" BorderThickness="1" BorderBrush="#E5EAE7">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">
@@ -484,7 +536,7 @@
             <TextBlock x:Name="TxtSavingStatus" Text="" Foreground="#2E7D32" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Cancel" Click="BtnClose_Click" Style="{StaticResource SecondaryButton}" Height="40" Padding="20,0" Margin="0,0,0,10"/>
+                <Button Content="Cancel" Click="BtnClose_Click" Style="{StaticResource SecondaryButton}" Height="40" Padding="20,0" Margin="0,0,10,0"/>
                 <Button x:Name="BtnSavePurchase" Content="✓ Save Purchase" Click="BtnSavePurchase_Click" Style="{StaticResource PrimaryButton}" Height="40" Padding="24,0"/>
             </StackPanel>
         </Grid>

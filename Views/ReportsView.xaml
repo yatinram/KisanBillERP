@@ -1,6 +1,6 @@
 <UserControl x:Class="KrushiBillERP.Views.ReportsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 	<UserControl.Resources>
 		<SolidColorBrush x:Key="PageBg" Color="#F4F6F5"/>
@@ -47,7 +47,6 @@
 													<ColumnDefinition Width="*"/>
 													<ColumnDefinition Width="26"/>
 												</Grid.ColumnDefinitions>
-												<!-- Fixed left padding for selected content -->
 												<ContentPresenter Grid.Column="0" Margin="16,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
 												<TextBlock Grid.Column="1" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="9" Foreground="#8A8A85" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 											</Grid>
@@ -71,7 +70,7 @@
 			</Setter>
 			<Setter Property="ItemContainerStyle">
 				<Setter.Value>
-				<Style TargetType="ComboBoxItem">
+					<Style TargetType="ComboBoxItem">
 						<Setter Property="Padding" Value="16,8" />
 						<Setter Property="HorizontalContentAlignment" Value="Left" />
 						<Setter Property="Template">
@@ -92,38 +91,10 @@
 			</Setter>
 		</Style>
 
-		<!-- Make ModernComboBox the implicit ComboBox Style for this view -->
 		<Style TargetType="ComboBox" BasedOn="{StaticResource ModernComboBox}" />
 
 		<Style x:Key="StatCardStyle" TargetType="Border" BasedOn="{StaticResource CardStyle}">
-			<Setter Property="Padding" Value="16"/>
-		</Style>
-
-		<Style x:Key="TabHeaderBtn" TargetType="RadioButton">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="RadioButton">
-						<Border x:Name="bd" Background="#F8FAF9" BorderBrush="#E5EAE7" BorderThickness="1"
-                                CornerRadius="8" Padding="16,10" Cursor="Hand" Margin="0,0,8,0">
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsChecked" Value="True">
-								<Setter TargetName="bd" Property="Background" Value="#2E7D32"/>
-								<Setter TargetName="bd" Property="BorderBrush" Value="#1B5E20"/>
-								<Setter Property="Foreground" Value="White"/>
-								<Setter Property="FontWeight" Value="Bold"/>
-							</Trigger>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="bd" Property="Background" Value="#E8F5E9"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-			<Setter Property="FontSize" Value="13"/>
-			<Setter Property="Foreground" Value="#374151"/>
-			<Setter Property="GroupName" Value="ReportTabs"/>
+			<Setter Property="Padding" Value="16,14"/>
 		</Style>
 
 		<Style x:Key="PageNavBtn" TargetType="Button">
@@ -133,17 +104,27 @@
 			<Setter Property="BorderThickness" Value="1"/>
 			<Setter Property="Padding" Value="12,6"/>
 			<Setter Property="Cursor" Value="Hand"/>
-			<Style.Triggers>
-				<Trigger Property="IsEnabled" Value="False">
-					<Setter Property="Foreground" Value="#C0C6C3"/>
-				</Trigger>
-			</Style.Triggers>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="bd" Property="Background" Value="#F3F4F6"/>
+							</Trigger>
+							<Trigger Property="IsEnabled" Value="False">
+								<Setter TargetName="bd" Property="Opacity" Value="0.35"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
 		</Style>
+	</UserControl.Resources>
 
-		<!-- ================= PREMIUM DATAGRID StYLING ================= -->
-		<!-- Premium DataGrid Styling moved to Resources/Styles/DataGrid.Styles.xaml -->
-
-	</UserControl.Resources>    <Grid Background="{StaticResource PageBg}">
+	<Grid Margin="20" Background="{StaticResource PageBg}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -151,93 +132,95 @@
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
-		<!-- Header -->
+		<!-- 1. Header -->
 		<Grid Grid.Row="0" Margin="0,0,0,16">
 			<StackPanel VerticalAlignment="Center">
 				<TextBlock Text="Reports &amp; Business Analytics" FontSize="22" FontWeight="Bold" Foreground="{StaticResource HeadingText}"/>
-				
 			</StackPanel>
-
-			<!-- Showing range info -->
-			
 		</Grid>
 
-		<!-- Report Selector (dropdown) -->
+		<!-- 2. Report Selector (dropdown) -->
 		<StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,14">
-
-			<TextBlock Text="Reports : " FontSize="18" FontWeight="Bold" Foreground="{StaticResource HeadingText}" Margin="0 0 10 0"/>
-			<ComboBox x:Name="CmbReportSelector" Width="420" Height="36" VerticalAlignment="Center" SelectionChanged="CmbReportSelector_SelectionChanged">
-				<ComboBoxItem Content="ðŸ§¾  Sales &amp; Billing Report" Tag="Sales" IsSelected="True"/>
+			<TextBlock Text="Reports :" FontSize="16" FontWeight="Bold" Foreground="{StaticResource HeadingText}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+			<ComboBox x:Name="CmbReportSelector" Width="360" Height="38" VerticalAlignment="Center" SelectionChanged="CmbReportSelector_SelectionChanged">
+				<ComboBoxItem Content="📄  Sales &amp; Billing Report" Tag="Sales" IsSelected="True"/>
 				<ComboBoxItem Content="📦  Stock Valuation &amp; Expiry" Tag="Stock"/>
-				<ComboBoxItem Content="ðŸ’³  Udhar &amp; Customer Ledger" Tag="Udhar"/>
-				<ComboBoxItem Content="ðŸ“‘  GST Tax Summary" Tag="GST"/>
-				<ComboBoxItem Content="ðŸ›ï¸  Purchases &amp; Supplier Report" Tag="Purchase"/>
+				<ComboBoxItem Content="💳  Udhar &amp; Customer Ledger" Tag="Udhar"/>
+				<ComboBoxItem Content="📋  GST Tax Summary" Tag="GST"/>
+				<ComboBoxItem Content="🛍️  Purchases &amp; Supplier Report" Tag="Purchase"/>
 			</ComboBox>
 		</StackPanel>
 
-		<!-- Stat Cards Row -->
+		<!-- 3. Stat Cards Row -->
 		<Grid Grid.Row="2" Margin="0,0,0,14">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="14"/>
 				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="14"/>
 				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="14"/>
 				<ColumnDefinition Width="*"/>
 			</Grid.ColumnDefinitions>
 
-			<Border Grid.Column="0" Style="{StaticResource StatCardStyle}" Margin="0,0,0,10">
+			<!-- Card 1 -->
+			<Border Grid.Column="0" Style="{StaticResource StatCardStyle}">
 				<StackPanel Orientation="Horizontal">
-					<Border Width="40" Height="40" CornerRadius="20" Background="{StaticResource StatIconBg}" Margin="0,0,12,0">
-						<TextBlock x:Name="TxtStat1Icon" Text="ðŸ“„" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+					<Border Width="42" Height="42" CornerRadius="21" Background="{StaticResource StatIconBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+						<TextBlock x:Name="TxtStat1Icon" Text="📄" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 					</Border>
 					<StackPanel VerticalAlignment="Center">
-						<TextBlock x:Name="TxtStat1Title" Text="Total Bills" FontSize="12" Foreground="{StaticResource MutedText}"/>
-						<TextBlock x:Name="TxtStat1Value" Text="0" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}"/>
-						<TextBlock x:Name="TxtStat1Sub" Text="" FontSize="11" Foreground="{StaticResource MutedText}"/>
+						<TextBlock x:Name="TxtStat1Title" Text="Total Bills (Today)" FontSize="12" Foreground="{StaticResource MutedText}"/>
+						<TextBlock x:Name="TxtStat1Value" Text="0" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}" Margin="0,2,0,2"/>
+						<TextBlock x:Name="TxtStat1Sub" Text="Total invoices generated" FontSize="11" Foreground="{StaticResource MutedText}"/>
 					</StackPanel>
 				</StackPanel>
 			</Border>
 
-			<Border Grid.Column="1" Style="{StaticResource StatCardStyle}" Margin="0,0,0,10">
+			<!-- Card 2 -->
+			<Border Grid.Column="2" Style="{StaticResource StatCardStyle}">
 				<StackPanel Orientation="Horizontal">
-					<Border Width="40" Height="40" CornerRadius="20" Background="{StaticResource StatIconBg}" Margin="0,0,12,0">
-						<TextBlock x:Name="TxtStat2Icon" Text="₹" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+					<Border Width="42" Height="42" CornerRadius="21" Background="{StaticResource StatIconBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+						<TextBlock x:Name="TxtStat2Icon" Text="₹" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 					</Border>
 					<StackPanel VerticalAlignment="Center">
-						<TextBlock x:Name="TxtStat2Title" Text="Total Revenue" FontSize="12" Foreground="{StaticResource MutedText}"/>
-						<TextBlock x:Name="TxtStat2Value" Text="₹ 0.00" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}"/>
-						<TextBlock x:Name="TxtStat2Sub" Text="" FontSize="11" Foreground="{StaticResource MutedText}"/>
+						<TextBlock x:Name="TxtStat2Title" Text="Total Revenue (Today)" FontSize="12" Foreground="{StaticResource MutedText}"/>
+						<TextBlock x:Name="TxtStat2Value" Text="₹ 0.00" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}" Margin="0,2,0,2"/>
+						<TextBlock x:Name="TxtStat2Sub" Text="Total amount collected" FontSize="11" Foreground="{StaticResource MutedText}"/>
 					</StackPanel>
 				</StackPanel>
 			</Border>
 
-			<Border Grid.Column="2" Style="{StaticResource StatCardStyle}" Margin="0,0,0,10">
+			<!-- Card 3 -->
+			<Border Grid.Column="4" Style="{StaticResource StatCardStyle}">
 				<StackPanel Orientation="Horizontal">
-					<Border Width="40" Height="40" CornerRadius="20" Background="{StaticResource StatIconBg}" Margin="0,0,12,0">
-						<TextBlock x:Name="TxtStat3Icon" Text="ðŸ“Š" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+					<Border Width="42" Height="42" CornerRadius="21" Background="{StaticResource StatIconBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+						<TextBlock x:Name="TxtStat3Icon" Text="📊" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 					</Border>
 					<StackPanel VerticalAlignment="Center">
-						<TextBlock x:Name="TxtStat3Title" Text="Total GST" FontSize="12" Foreground="{StaticResource MutedText}"/>
-						<TextBlock x:Name="TxtStat3Value" Text="₹ 0.00" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}"/>
-						<TextBlock x:Name="TxtStat3Sub" Text="" FontSize="11" Foreground="{StaticResource MutedText}"/>
+						<TextBlock x:Name="TxtStat3Title" Text="Total GST (Today)" FontSize="12" Foreground="{StaticResource MutedText}"/>
+						<TextBlock x:Name="TxtStat3Value" Text="₹ 0.00" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}" Margin="0,2,0,2"/>
+						<TextBlock x:Name="TxtStat3Sub" Text="Total GST amount" FontSize="11" Foreground="{StaticResource MutedText}"/>
 					</StackPanel>
 				</StackPanel>
 			</Border>
 
-			<Border Grid.Column="3" Style="{StaticResource StatCardStyle}">
+			<!-- Card 4 -->
+			<Border Grid.Column="6" Style="{StaticResource StatCardStyle}">
 				<StackPanel Orientation="Horizontal">
-					<Border Width="40" Height="40" CornerRadius="20" Background="{StaticResource StatIconBg}" Margin="0,0,12,0">
-						<TextBlock x:Name="TxtStat4Icon" Text="📈" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+					<Border Width="42" Height="42" CornerRadius="21" Background="{StaticResource StatIconBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+						<TextBlock x:Name="TxtStat4Icon" Text="📈" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 					</Border>
 					<StackPanel VerticalAlignment="Center">
 						<TextBlock x:Name="TxtStat4Title" Text="Average Bill Value" FontSize="12" Foreground="{StaticResource MutedText}"/>
-						<TextBlock x:Name="TxtStat4Value" Text="₹ 0.00" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}"/>
-						<TextBlock x:Name="TxtStat4Sub" Text="" FontSize="11" Foreground="{StaticResource MutedText}"/>
+						<TextBlock x:Name="TxtStat4Value" Text="₹ 0.00" FontSize="20" FontWeight="Bold" Foreground="{StaticResource HeadingText}" Margin="0,2,0,2"/>
+						<TextBlock x:Name="TxtStat4Sub" Text="Average per invoice" FontSize="11" Foreground="{StaticResource MutedText}"/>
 					</StackPanel>
 				</StackPanel>
 			</Border>
 		</Grid>
 
-		<!-- Main Report Body -->
+		<!-- 4. Main Report Body -->
 		<Border Grid.Row="3" Style="{StaticResource CardStyle}" Padding="20">
 			<Grid>
 				<Grid.RowDefinitions>
@@ -250,39 +233,35 @@
 				<!-- Filter & Action Bar -->
 				<Grid Grid.Row="0" Margin="0,0,0,16">
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="2*"/>
-						<ColumnDefinition Width="1.5*"/>
+						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 
-					<StackPanel Orientation="Horizontal" Grid.Column="0">
-						<TextBlock Text="Date Range:" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,10"/>
+					<!-- Date Range -->
+					<StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+						<TextBlock Text="Date Range:" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" Margin="0,0,10,0"/>
 						<ComboBox x:Name="CmbDateRange" Width="170" Height="36" VerticalContentAlignment="Center" SelectionChanged="DateRange_Changed">
 							<ComboBoxItem Content="Today" IsSelected="True"/>
 							<ComboBoxItem Content="This Week"/>
 							<ComboBoxItem Content="This Month"/>
-							<ComboBoxItem Content="LaSt 365 Days"/>
-							<ComboBoxItem Content="LaSt 5 Years"/>
+							<ComboBoxItem Content="Last 30 Days"/>
+							<ComboBoxItem Content="This Year"/>
+							<ComboBoxItem Content="All Time"/>
 						</ComboBox>
-						<Button x:Name="BtnRefresh" Height="36" Margin="10,0,0,0" Padding="12,0" Click="BtnRefresh_Click"
-								Background="White" BorderBrush="#E5EAE7" BorderThickness="1" Cursor="Hand">
-							<StackPanel Orientation="Horizontal">
-								<TextBlock Text="â†» " FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Foreground="{StaticResource AccentGreen}"/>
-								<TextBlock Text="Refresh" FontSize="13" VerticalAlignment="Center" Foreground="{StaticResource AccentGreen}"/>
-							</StackPanel>
-						</Button>
+						<Button x:Name="BtnRefresh" Style="{StaticResource RefreshButton}" Height="38" Width="112" Margin="10,0,0,0" Click="BtnRefresh_Click"/>
 					</StackPanel>
 
-			<ComboBox x:Name="CmbActions" Grid.Column="2" Width="180" Height="36" Style="{StaticResource ModernComboBox}" SelectionChanged="CmbActions_SelectionChanged" Padding="16,6,8,6" HorizontalContentAlignment="Left">
-				<ComboBoxItem Content="Actions" Tag="" IsSelected="True" IsEnabled="False" />
-				<ComboBoxItem Content="ðŸ“Š Export CSV" Tag="Export" />
-				<ComboBoxItem Content="ðŸ’¾ Save PDF" Tag="SavePdf" />
-				<ComboBoxItem Content="ðŸ–¨ï¸ Print Report" Tag="Print" />
-			</ComboBox>
+					<!-- Actions Dropdown -->
+					<ComboBox x:Name="CmbActions" Grid.Column="1" Width="180" Height="36" Style="{StaticResource ModernComboBox}" SelectionChanged="CmbActions_SelectionChanged" Padding="16,6,8,6" HorizontalContentAlignment="Left">
+						<ComboBoxItem Content="Actions" Tag="" IsSelected="True" IsEnabled="False" />
+						<ComboBoxItem Content="📊 Export CSV" Tag="Export" />
+						<ComboBoxItem Content="💾 Save PDF" Tag="SavePdf" />
+						<ComboBoxItem Content="🖨️ Print Report" Tag="Print" />
+					</ComboBox>
 				</Grid>
 
-			<!-- Dynamic DataGrid Report View (Premium Styled) -->
-			<DataGrid x:Name="GridReport" Grid.Row="1" Style="{StaticResource PremiumDataGridStyle}" ColumnWidth="*" CanUserResizeColumns="False" AutoGeneratingColumn="GridReport_AutoGeneratingColumn"/>
+				<!-- Dynamic DataGrid Report View -->
+				<DataGrid x:Name="GridReport" Grid.Row="1" Style="{StaticResource PremiumDataGridStyle}" ColumnWidth="*" CanUserResizeColumns="False" AutoGeneratingColumn="GridReport_AutoGeneratingColumn"/>
 
 				<!-- Pagination Bar -->
 				<Grid Grid.Row="2" Margin="0,12,0,0">
@@ -292,7 +271,7 @@
 					</Grid.ColumnDefinitions>
 
 					<StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
-						<TextBlock x:Name="TxtShowingInfo" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource MutedText}" Margin="12,0,12,0" Text="Showing 0 to 0 of 0 entries"/>
+						<TextBlock x:Name="TxtShowingInfo" VerticalAlignment="Center" Foreground="{StaticResource MutedText}" Margin="0,0,12,0" Text="Showing 0 to 0 of 0 entries"/>
 						<TextBlock Text="Show" VerticalAlignment="Center" FontSize="13" Foreground="{StaticResource MutedText}" Margin="0,0,6,0"/>
 						<ComboBox x:Name="CmbPageSize" Width="70" Height="30" SelectionChanged="PageSize_Changed">
 							<ComboBoxItem Content="10" IsSelected="True"/>
@@ -316,13 +295,12 @@
 				<Border Grid.Row="3" Background="#F8FAF9" BorderBrush="#E5EAE7" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,14,0,0">
 					<Grid>
 						<Border Width="4" Background="{StaticResource AccentGreen}" HorizontalAlignment="Left" CornerRadius="2"/>
-						<TextBlock x:Name="TxtReportSummary" Text="Total Records: 0" FontSize="14" FontWeight="Bold" Foreground="#1B5E20" VerticalAlignment="Center" Margin="12,0,0,0"/>
+						<TextBlock x:Name="TxtReportSummary" Text="Sales &amp; Billing Report (Today): 0 Bills | Total Revenue: ₹ 0.00 | Total GST: ₹ 0.00" FontSize="13" FontWeight="Bold" Foreground="#1B5E20" VerticalAlignment="Center" Margin="12,0,0,0"/>
 						<TextBlock x:Name="TxtReportFooter" Text="Report generated dynamically from krushibill.db" FontSize="12" Foreground="{StaticResource MutedText}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 					</Grid>
 				</Border>
 			</Grid>
 		</Border>
 
-	</Grid></UserControl>
-
-
+	</Grid>
+</UserControl>

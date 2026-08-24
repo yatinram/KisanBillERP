@@ -180,21 +180,21 @@ namespace KrushiBillERP.Views
             var selTag = (CmbReportSelector?.SelectedItem as ComboBoxItem)?.Tag?.ToString();
             if (!string.IsNullOrEmpty(selTag))
             {
-                switch (selTag)
+                switch (selTag.ToLowerInvariant())
                 {
-                    case "Sales":
+                    case "sales":
                         LoadSalesReport(dateRange);
                         break;
-                    case "Stock":
+                    case "stock":
                         LoadStockReport();
                         break;
-                    case "Udhar":
+                    case "udhar":
                         LoadUdharReport();
                         break;
-                    case "Gst":
+                    case "gst":
                         LoadGstReport(dateRange);
                         break;
-                    case "Purchase":
+                    case "purchase":
                         LoadPurchaseReport(dateRange);
                         break;
                 }
@@ -381,13 +381,13 @@ namespace KrushiBillERP.Views
             var selTag = (CmbReportSelector?.SelectedItem as ComboBoxItem)?.Tag?.ToString();
             if (!string.IsNullOrEmpty(selTag))
             {
-                switch (selTag)
+                switch (selTag.ToLowerInvariant())
                 {
-                    case "Sales": return "Sales & Billing Report";
-                    case "Stock": return "Stock Valuation Report";
-                    case "Udhar": return "Udhar Balance Report";
-                    case "Gst": return "GST Tax Report";
-                    case "Purchase": return "Purchase & Supplier Report";
+                    case "sales": return "Sales & Billing Report";
+                    case "stock": return "Stock Valuation Report";
+                    case "udhar": return "Udhar Balance Report";
+                    case "gst": return "GST Tax Report";
+                    case "purchase": return "Purchase & Supplier Report";
                 }
             }
 

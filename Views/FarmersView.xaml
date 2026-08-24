@@ -146,32 +146,6 @@
             </Setter>
         </Style>
 
-        <Style x:Key="RefreshButton" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
-            <Setter Property="BorderBrush" Value="#D1D5DB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,0"/>
-            <Setter Property="Height" Value="38"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#F3F4F6"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- Edit Action Button -->
         <Style x:Key="EditActionBtn" TargetType="Button">
             <Setter Property="Background" Value="#ECFDF5"/>
@@ -340,7 +314,7 @@
                         <ComboBoxItem Tag="1">Active</ComboBoxItem>
                         <ComboBoxItem Tag="0">Inactive</ComboBoxItem>
                     </ComboBox>
-                    <Button x:Name="BtnRefresh" Content="↻ Refresh" Style="{StaticResource RefreshButton}" Padding="10,6" Click="BtnRefresh_Click"/>
+                    <Button x:Name="BtnRefresh" Style="{StaticResource RefreshButton}" Width="112" Height="38" Click="BtnRefresh_Click"/>
                 </StackPanel>
             </Grid>
         </Border>
