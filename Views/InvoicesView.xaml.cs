@@ -219,38 +219,39 @@ namespace KrushiBillERP.Views
             }
         }
 
-        // ===================== FARMER SELECTION (MODAL + AUTOCOMPLETE) =====================
+        // ===================== FARMER SELECTION (AUTOCOMPLETE POPUP) =====================
+
+        private void SetFarmerPopupVisible(bool visible)
+        {
+            if (PopupFarmer != null)
+            {
+                PopupFarmer.IsOpen = visible;
+                PopupFarmer.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private bool IsFarmerPopupVisible()
+        {
+            return PopupFarmer != null && (PopupFarmer.IsOpen || PopupFarmer.Visibility == Visibility.Visible);
+        }
 
         private void BtnSelectFarmer_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                var selectWin = new FarmerSelectWindow();
-                var parent = Window.GetWindow(this);
-                if (parent != null) selectWin.Owner = parent;
-
-                if (selectWin.ShowDialog() == true && selectWin.SelectedFarmer != null)
-                {
-                    SelectFarmer(selectWin.SelectedFarmer);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error selecting customer/farmer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            // Legacy - no longer used, farmer selection is inline
+            TxtFarmerSearch.Focus();
         }
 
         private void TxtFarmerSearch_KeyUp(object sender, KeyEventArgs e)
         {
+            if (e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Escape) return;
+
             if (e.Key == Key.Enter)
             {
-                PopupFarmer.Visibility = Visibility.Collapsed;
+                SetFarmerPopupVisible(false);
                 _page = 1;
                 LoadData();
                 return;
             }
-
-            if (e.Key == Key.Down) return;
 
             string search = TxtFarmerSearch.Text.Trim();
             HintFarmer.Visibility = string.IsNullOrEmpty(search) ? Visibility.Visible : Visibility.Collapsed;
@@ -259,11 +260,11 @@ namespace KrushiBillERP.Views
             {
                 var matches = DatabaseHelper.SearchFarmersForPayment(search);
                 ListFarmers.ItemsSource = matches;
-                PopupFarmer.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                SetFarmerPopupVisible(matches.Count > 0);
             }
             else
             {
-                PopupFarmer.Visibility = Visibility.Collapsed;
+                SetFarmerPopupVisible(false);
                 if (_selectedFarmer != null)
                 {
                     _selectedFarmer = null;
@@ -277,30 +278,47 @@ namespace KrushiBillERP.Views
 
         private void TxtFarmerSearch_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Down && PopupFarmer.Visibility == Visibility.Visible && ListFarmers.Items.Count > 0)
+            if (e.Key == Key.Escape)
+            {
+                SetFarmerPopupVisible(false);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Down && IsFarmerPopupVisible() && ListFarmers.Items.Count > 0)
             {
                 ListFarmers.SelectedIndex = 0;
                 var item = (ListBoxItem)ListFarmers.ItemContainerGenerator.ContainerFromIndex(0);
-                item?.Focus();
+                if (item != null) item.Focus();
+                else ListFarmers.Focus();
                 e.Handled = true;
             }
-            else if (e.Key == Key.Enter && PopupFarmer.Visibility == Visibility.Visible && ListFarmers.Items.Count > 0)
+            else if (e.Key == Key.Enter && IsFarmerPopupVisible() && ListFarmers.Items.Count > 0)
             {
-                SelectFarmer(ListFarmers.Items[0] as Farmer);
+                SelectFarmer(ListFarmers.SelectedItem as Farmer ?? ListFarmers.Items[0] as Farmer);
                 e.Handled = true;
             }
         }
 
         private void ListFarmers_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && ListFarmers.SelectedItem is Farmer f)
+            if (e.Key == Key.Escape)
+            {
+                SetFarmerPopupVisible(false);
+                TxtFarmerSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Up && ListFarmers.SelectedIndex <= 0)
+            {
+                TxtFarmerSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter && ListFarmers.SelectedItem is Farmer f)
             {
                 SelectFarmer(f);
                 e.Handled = true;
             }
         }
 
-        private void ListFarmers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ListFarmers_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (ListFarmers.SelectedItem is Farmer f)
             {
@@ -308,12 +326,18 @@ namespace KrushiBillERP.Views
             }
         }
 
+        private void ListFarmers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Kept for backward compatibility - no-op
+        }
+
         private void SelectFarmer(Farmer f)
         {
+            if (f == null) return;
             _selectedFarmer = f;
             TxtFarmerSearch.Text = f.FarmerName;
             HintFarmer.Visibility = Visibility.Collapsed;
-            PopupFarmer.Visibility = Visibility.Collapsed;
+            SetFarmerPopupVisible(false);
 
             TxtMobile.Text = string.IsNullOrEmpty(f.MobileNumber) ? "-" : f.MobileNumber;
             TxtVillage.Text = string.IsNullOrEmpty(f.VillageName) ? "-" : f.VillageName;

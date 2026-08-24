@@ -107,6 +107,13 @@ namespace KrushiBillERP.Views
             TxtFarmerSearch.Text = string.Empty;
             TxtFarmerSearchPlaceholder.Visibility = Visibility.Visible;
 
+            if (CmbFarmerSelect != null)
+            {
+                RefreshFarmerComboBox();
+                CmbFarmerSelect.SelectedItem = null;
+                CmbFarmerSelect.Text = string.Empty;
+            }
+
             PanelAddBar.Visibility = Visibility.Collapsed;
             PopupProductResults.Visibility = Visibility.Collapsed;
             TxtProductSearch.Text = string.Empty;
@@ -277,60 +284,167 @@ namespace KrushiBillERP.Views
             }
         }
 
+        private List<Farmer> _farmerComboList = new List<Farmer>();
+
+        private void CmbFarmerSelect_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                RefreshFarmerComboBox();
+                var tb = CmbFarmerSelect.Template.FindName("PART_EditableTextBox", CmbFarmerSelect) as TextBox;
+                if (tb != null)
+                {
+                    tb.TextChanged -= CmbFarmerSelect_TextChanged;
+                    tb.TextChanged += CmbFarmerSelect_TextChanged;
+                }
+            }
+            catch { }
+        }
+
+        private void RefreshFarmerComboBox()
+        {
+            _farmerComboList = DatabaseHelper.SearchFarmersByNameOrMobile("");
+            CmbFarmerSelect.ItemsSource = new ObservableCollection<Farmer>(_farmerComboList);
+        }
+
+        private void CmbFarmerSelect_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (CmbFarmerSelect == null || CmbFarmerSelect.ItemsSource == null) return;
+            string filterText = CmbFarmerSelect.Text?.Trim() ?? "";
+
+            var view = System.Windows.Data.CollectionViewSource.GetDefaultView(CmbFarmerSelect.ItemsSource);
+            if (view != null)
+            {
+                view.Filter = item =>
+                {
+                    if (string.IsNullOrWhiteSpace(filterText)) return true;
+                    if (item is Farmer f)
+                    {
+                        return (f.FarmerName != null && f.FarmerName.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                               (f.MobileNumber != null && f.MobileNumber.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0);
+                    }
+                    return false;
+                };
+                view.Refresh();
+                if (filterText.Length > 0 && !CmbFarmerSelect.IsDropDownOpen)
+                {
+                    CmbFarmerSelect.IsDropDownOpen = true;
+                }
+            }
+        }
+
+        private void CmbFarmerSelect_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Enter || e.Key == Key.Escape) return;
+            string filterText = CmbFarmerSelect.Text?.Trim() ?? "";
+            CmbFarmerSelect_TextChanged(null, null);
+        }
+
+        private void CmbFarmerSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CmbFarmerSelect.SelectedItem is Farmer f)
+            {
+                SelectFarmer(f);
+                if (TxtPaperBillNo != null) TxtPaperBillNo.Focus();
+            }
+        }
+
+        private void SetFarmerPopupVisible(bool visible)
+        {
+            if (PopupFarmerResults != null)
+            {
+                PopupFarmerResults.IsOpen = visible;
+                PopupFarmerResults.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private bool IsFarmerPopupVisible()
+        {
+            return PopupFarmerResults != null && (PopupFarmerResults.IsOpen || PopupFarmerResults.Visibility == Visibility.Visible);
+        }
+
         private void TxtFarmerSearch_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Down || e.Key == Key.Enter) return;
+            if (e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Enter || e.Key == Key.Escape) return;
 
             string search = TxtFarmerSearch.Text.Trim();
             TxtFarmerSearchPlaceholder.Visibility = string.IsNullOrEmpty(search) ? Visibility.Visible : Visibility.Collapsed;
 
             if (search.Length >= 1)
             {
-                var matches = DatabaseHelper.SearchFarmersForPayment(search);
+                var matches = DatabaseHelper.SearchFarmersByNameOrMobile(search);
                 ListFarmers.ItemsSource = matches;
-                PopupFarmerResults.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                SetFarmerPopupVisible(matches.Count > 0);
             }
             else
             {
-                PopupFarmerResults.Visibility = Visibility.Collapsed;
+                SetFarmerPopupVisible(false);
             }
         }
 
         private void TxtFarmerSearch_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Down && PopupFarmerResults.Visibility == Visibility.Visible && ListFarmers.Items.Count > 0)
+            if (e.Key == Key.Escape)
+            {
+                SetFarmerPopupVisible(false);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Down && IsFarmerPopupVisible() && ListFarmers.Items.Count > 0)
             {
                 ListFarmers.SelectedIndex = 0;
                 var item = (ListBoxItem)ListFarmers.ItemContainerGenerator.ContainerFromIndex(0);
-                item?.Focus();
+                if (item != null)
+                {
+                    item.Focus();
+                }
+                else
+                {
+                    ListFarmers.Focus();
+                }
                 e.Handled = true;
             }
-            else if (e.Key == Key.Enter && PopupFarmerResults.Visibility == Visibility.Visible && ListFarmers.Items.Count > 0)
+            else if (e.Key == Key.Enter && IsFarmerPopupVisible() && ListFarmers.Items.Count > 0)
             {
-                SelectFarmer(ListFarmers.Items[0] as Farmer);
-                PopupFarmerResults.Visibility = Visibility.Collapsed;
-                TxtPaperBillNo.Focus();
-                e.Handled = true;
+                var selected = ListFarmers.SelectedItem as Farmer ?? ListFarmers.Items[0] as Farmer;
+                if (selected != null)
+                {
+                    SelectFarmer(selected);
+                    SetFarmerPopupVisible(false);
+                    TxtPaperBillNo.Focus();
+                    e.Handled = true;
+                }
             }
         }
 
         private void ListFarmers_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && ListFarmers.SelectedItem is Farmer f)
+            if (e.Key == Key.Escape)
+            {
+                SetFarmerPopupVisible(false);
+                TxtFarmerSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Up && ListFarmers.SelectedIndex == 0)
+            {
+                TxtFarmerSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter && ListFarmers.SelectedItem is Farmer f)
             {
                 SelectFarmer(f);
-                PopupFarmerResults.Visibility = Visibility.Collapsed;
+                SetFarmerPopupVisible(false);
                 TxtPaperBillNo.Focus();
                 e.Handled = true;
             }
         }
 
-        private void ListFarmers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ListFarmers_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (ListFarmers.SelectedItem is Farmer f)
             {
                 SelectFarmer(f);
-                PopupFarmerResults.Visibility = Visibility.Collapsed;
+                SetFarmerPopupVisible(false);
+                TxtPaperBillNo.Focus();
             }
         }
 
@@ -345,6 +459,14 @@ namespace KrushiBillERP.Views
             TxtSelectedFarmerOutstanding.Text = $"₹ {outstanding:N2}";
 
             PanelSelectedFarmer.Visibility = Visibility.Visible;
+
+            if (TxtFarmerSearch != null)
+            {
+                TxtFarmerSearch.Text = string.Empty;
+                if (TxtFarmerSearchPlaceholder != null) TxtFarmerSearchPlaceholder.Visibility = Visibility.Visible;
+            }
+            SetFarmerPopupVisible(false);
+
             TxtPaperBillNo.Focus();
         }
 
@@ -387,9 +509,23 @@ namespace KrushiBillERP.Views
 
         // ===================== STEP 3: PRODUCT SEARCH & SELECTION =====================
 
+        private void SetProductPopupVisible(bool visible)
+        {
+            if (PopupProductResults != null)
+            {
+                PopupProductResults.IsOpen = visible;
+                PopupProductResults.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private bool IsProductPopupVisible()
+        {
+            return PopupProductResults != null && (PopupProductResults.IsOpen || PopupProductResults.Visibility == Visibility.Visible);
+        }
+
         private void TxtProductSearch_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Down || e.Key == Key.Enter) return;
+            if (e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Enter || e.Key == Key.Escape) return;
 
             string search = TxtProductSearch.Text.Trim();
             TxtProductSearchPlaceholder.Visibility = string.IsNullOrEmpty(search) ? Visibility.Visible : Visibility.Collapsed;
@@ -397,58 +533,88 @@ namespace KrushiBillERP.Views
             if (search.Length >= 1)
             {
                 var matches = DatabaseHelper.GetProductsInStock(search);
-                GridProductSuggestions.ItemsSource = matches;
-                PopupProductResults.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                ListProducts.ItemsSource = matches;
+                SetProductPopupVisible(matches.Count > 0);
             }
             else
             {
-                PopupProductResults.Visibility = Visibility.Collapsed;
+                SetProductPopupVisible(false);
             }
         }
 
         private void TxtProductSearch_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Down && PopupProductResults.Visibility == Visibility.Visible && GridProductSuggestions.Items.Count > 0)
+            if (e.Key == Key.Escape)
             {
-                GridProductSuggestions.SelectedIndex = 0;
-                GridProductSuggestions.Focus();
+                SetProductPopupVisible(false);
                 e.Handled = true;
             }
-            else if (e.Key == Key.Enter && PopupProductResults.Visibility == Visibility.Visible && GridProductSuggestions.Items.Count > 0)
+            else if (e.Key == Key.Down && IsProductPopupVisible() && ListProducts.Items.Count > 0)
             {
-                SelectProductBatch(GridProductSuggestions.Items[0] as Product);
-                PopupProductResults.Visibility = Visibility.Collapsed;
+                ListProducts.SelectedIndex = 0;
+                var item = (ListBoxItem)ListProducts.ItemContainerGenerator.ContainerFromIndex(0);
+                if (item != null) item.Focus();
+                else ListProducts.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter && IsProductPopupVisible() && ListProducts.Items.Count > 0)
+            {
+                SelectProductBatch(ListProducts.SelectedItem as Product ?? ListProducts.Items[0] as Product);
+                SetProductPopupVisible(false);
                 TxtQty.Focus();
                 TxtQty.SelectAll();
                 e.Handled = true;
+            }
+        }
+
+        private void ListProducts_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                SetProductPopupVisible(false);
+                TxtProductSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Up && ListProducts.SelectedIndex <= 0)
+            {
+                TxtProductSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter && ListProducts.SelectedItem is Product p)
+            {
+                SelectProductBatch(p);
+                SetProductPopupVisible(false);
+                TxtQty.Focus();
+                TxtQty.SelectAll();
+                e.Handled = true;
+            }
+        }
+
+        private void ListProducts_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (ListProducts.SelectedItem is Product p)
+            {
+                SelectProductBatch(p);
+                SetProductPopupVisible(false);
+                TxtQty.Focus();
+                TxtQty.SelectAll();
             }
         }
 
         private void GridProductSuggestions_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && GridProductSuggestions.SelectedItem is Product p)
-            {
-                SelectProductBatch(p);
-                PopupProductResults.Visibility = Visibility.Collapsed;
-                TxtQty.Focus();
-                TxtQty.SelectAll();
-                e.Handled = true;
-            }
+            ListProducts_PreviewKeyDown(sender, e);
         }
 
-        private void GridProductSuggestions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void GridProductSuggestions_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (GridProductSuggestions.SelectedItem is Product p)
-            {
-                SelectProductBatch(p);
-                PopupProductResults.Visibility = Visibility.Collapsed;
-            }
+            ListProducts_PreviewMouseLeftButtonUp(sender, e);
         }
 
         private void SelectProductBatch(Product p)
         {
+            if (p == null) return;
             _selectedProductBatch = p;
-            TxtProductSearch.Text = p.Name;
             TxtRate.Text = p.SalePrice.ToString("N2");
 
             TxtAddProdName.Text = $"{p.Name} ({p.Company})";
@@ -456,6 +622,13 @@ namespace KrushiBillERP.Views
             TxtAddExp.Text = p.ExpiryDisplay;
             TxtAddStock.Text = $"{p.StockQty} {p.Unit}";
             PanelAddBar.Visibility = Visibility.Visible;
+
+            if (TxtProductSearch != null)
+            {
+                TxtProductSearch.Text = string.Empty;
+                if (TxtProductSearchPlaceholder != null) TxtProductSearchPlaceholder.Visibility = Visibility.Visible;
+            }
+            SetProductPopupVisible(false);
         }
 
         private void TxtQty_KeyDown(object sender, KeyEventArgs e)

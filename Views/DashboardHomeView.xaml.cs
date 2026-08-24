@@ -316,7 +316,7 @@ namespace KrushiBillERP.Views
         }
 
         // Forward mouse wheel events from inner controls to the outer ScrollViewer so the page scrolls with mouse wheel
-        private void Child_PreviewMouseWheel(object? sender, MouseWheelEventArgs e)
+        private void Child_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (sender is DependencyObject dep)
             {
@@ -329,7 +329,7 @@ namespace KrushiBillERP.Views
             }
         }
 
-        private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
         {
             while (current != null)
             {

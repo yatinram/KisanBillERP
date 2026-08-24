@@ -61,6 +61,7 @@ namespace KrushiBillERP.Views
 
             // hide/disable inline farmer selector in view-only mode
             if (CmbFarmerSelect != null) CmbFarmerSelect.IsEnabled = false;
+            if (TxtFarmerSearch != null) TxtFarmerSearch.IsEnabled = false;
             BtnAutoAllocate.Visibility = Visibility.Collapsed;
             BtnSave.Visibility = Visibility.Collapsed;
 
@@ -104,6 +105,7 @@ namespace KrushiBillERP.Views
             {
                 _selectedFarmer = farmer;
                 if (CmbFarmerSelect != null) { CmbFarmerSelect.Text = farmer.FarmerName; CmbFarmerSelect.SelectedItem = farmer; }
+                if (TxtFarmerSearch != null) { TxtFarmerSearch.Text = string.Empty; if (HintFarmer != null) HintFarmer.Visibility = Visibility.Visible; }
                 if (TxtMobile != null) TxtMobile.Text = farmer.MobileNumber;
                 if (TxtVillage != null) TxtVillage.Text = farmer.VillageName;
 
@@ -160,32 +162,103 @@ namespace KrushiBillERP.Views
             UpdateSummary();
         }
 
-        private void CmbFarmerSelect_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        private void SetFarmerPopupVisible(bool visible)
         {
+            if (PopupFarmerResults != null)
+            {
+                PopupFarmerResults.IsOpen = visible;
+                PopupFarmerResults.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private bool IsFarmerPopupVisible()
+        {
+            return PopupFarmerResults != null && (PopupFarmerResults.IsOpen || PopupFarmerResults.Visibility == Visibility.Visible);
+        }
+
+        private void TxtFarmerSearch_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Down || e.Key == System.Windows.Input.Key.Up || e.Key == System.Windows.Input.Key.Enter || e.Key == System.Windows.Input.Key.Escape) return;
+
             try
             {
-                var txt = (CmbFarmerSelect.Text ?? "").Trim();
-                // simple filter
-                _filteredFarmers.Clear();
-                if (string.IsNullOrWhiteSpace(txt))
+                var txt = (TxtFarmerSearch.Text ?? "").Trim();
+                HintFarmer.Visibility = string.IsNullOrEmpty(txt) ? Visibility.Visible : Visibility.Collapsed;
+
+                if (txt.Length >= 1)
                 {
-                    foreach (var f in _allFarmers) _filteredFarmers.Add(f);
+                    var matches = DatabaseHelper.SearchFarmersForPayment(txt);
+                    ListFarmerResults.ItemsSource = matches;
+                    SetFarmerPopupVisible(matches.Count > 0);
                 }
                 else
                 {
-                    var q = txt.ToLowerInvariant();
-                    foreach (var f in _allFarmers)
-                    {
-                        if ((f.FarmerName ?? "").ToLowerInvariant().Contains(q) || (f.MobileNumber ?? "").Contains(q) || (f.VillageName ?? "").ToLowerInvariant().Contains(q))
-                        {
-                            _filteredFarmers.Add(f);
-                        }
-                    }
+                    SetFarmerPopupVisible(false);
                 }
-                if (!_filteredFarmers.Any()) CmbFarmerSelect.IsDropDownOpen = false;
-                else CmbFarmerSelect.IsDropDownOpen = true;
             }
             catch { }
+        }
+
+        private void TxtFarmerSearch_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                SetFarmerPopupVisible(false);
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Down && IsFarmerPopupVisible() && ListFarmerResults.Items.Count > 0)
+            {
+                ListFarmerResults.SelectedIndex = 0;
+                var item = (ListBoxItem)ListFarmerResults.ItemContainerGenerator.ContainerFromIndex(0);
+                if (item != null) item.Focus();
+                else ListFarmerResults.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Enter && IsFarmerPopupVisible() && ListFarmerResults.Items.Count > 0)
+            {
+                var f = ListFarmerResults.SelectedItem as Farmer ?? ListFarmerResults.Items[0] as Farmer;
+                if (f != null) { LoadFarmer(f); TxtFarmerSearch.Text = string.Empty; HintFarmer.Visibility = Visibility.Visible; SetFarmerPopupVisible(false); }
+                e.Handled = true;
+            }
+        }
+
+        private void ListFarmerResults_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                SetFarmerPopupVisible(false);
+                TxtFarmerSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Up && ListFarmerResults.SelectedIndex <= 0)
+            {
+                TxtFarmerSearch.Focus();
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Enter && ListFarmerResults.SelectedItem is Farmer f)
+            {
+                LoadFarmer(f);
+                TxtFarmerSearch.Text = string.Empty;
+                HintFarmer.Visibility = Visibility.Visible;
+                SetFarmerPopupVisible(false);
+                e.Handled = true;
+            }
+        }
+
+        private void ListFarmerResults_PreviewMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (ListFarmerResults.SelectedItem is Farmer f)
+            {
+                LoadFarmer(f);
+                TxtFarmerSearch.Text = string.Empty;
+                HintFarmer.Visibility = Visibility.Visible;
+                SetFarmerPopupVisible(false);
+            }
+        }
+
+        private void CmbFarmerSelect_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // Legacy - kept for backward compatibility
         }
 
         private void CmbFarmerSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)

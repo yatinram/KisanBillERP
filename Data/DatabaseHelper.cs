@@ -2804,6 +2804,28 @@ namespace KrushiBillERP.Data
             return list;
         }
 
+        public static List<Farmer> SearchFarmersByNameOrMobile(string search)
+        {
+            var list = new List<Farmer>();
+            using var conn = GetConnection();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT * FROM Farmers WHERE Status=1 AND (FarmerName LIKE $s OR MobileNumber LIKE $s) ORDER BY FarmerName LIMIT 50";
+            cmd.Parameters.AddWithValue("$s", $"%{(search ?? "").Trim()}%");
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                list.Add(new Farmer
+                {
+                    FarmerId = r.GetInt32(r.GetOrdinal("FarmerId")),
+                    FarmerName = r["FarmerName"]?.ToString(),
+                    MobileNumber = r["MobileNumber"]?.ToString(),
+                    VillageName = r["VillageName"]?.ToString(),
+                    Status = r["Status"] is DBNull ? 1 : Convert.ToInt32(r["Status"])
+                });
+            }
+            return list;
+        }
+
         public static List<Farmer> SearchFarmersForPayment(string search)
         {
             var list = new List<Farmer>();

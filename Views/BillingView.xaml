@@ -198,53 +198,46 @@
                                         <ColumnDefinition Width="1.4*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Farmer Search Input -->
-                                    <StackPanel Grid.Column="0">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="Customer / Farmer" Style="{StaticResource FieldLabel}"/>
-                                            <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
-                                        </StackPanel>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid Grid.Column="0">
-                                                <TextBox x:Name="TxtFarmerSearch" Style="{StaticResource InputTextBox}" Height="38" KeyUp="TxtFarmerSearch_KeyUp" PreviewKeyDown="TxtFarmerSearch_PreviewKeyDown"/>
-                                                <TextBlock x:Name="TxtFarmerSearchPlaceholder" Text="🔍 Search by farmer name or mobile..." IsHitTestVisible="False" Foreground="#9CA3AF" FontSize="13" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                            </Grid>
-                                            <Button x:Name="BtnSelectFarmer" Grid.Column="1" Content="🔍 Select" Click="BtnSelectFarmer_Click" Style="{StaticResource GreenBtn}" Height="38" Padding="12,0" Margin="6,0,0,0" FontSize="12"/>
-                                        </Grid>
+                                     <!-- Farmer Search Input with Dropdown Popup -->
+                                     <StackPanel Grid.Column="0">
+                                         <StackPanel Orientation="Horizontal">
+                                             <TextBlock Text="Customer / Farmer" Style="{StaticResource FieldLabel}"/>
+                                             <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold"/>
+                                         </StackPanel>
+                                         <Grid>
+                                             <TextBox x:Name="TxtFarmerSearch" Style="{StaticResource InputTextBox}" Height="38" KeyUp="TxtFarmerSearch_KeyUp" PreviewKeyDown="TxtFarmerSearch_PreviewKeyDown"/>
+                                             <TextBlock x:Name="TxtFarmerSearchPlaceholder" Text="Search by farmer name or mobile..." IsHitTestVisible="False" Foreground="#9CA3AF" FontSize="13" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                             <Button x:Name="BtnSelectFarmer" Visibility="Collapsed" Click="BtnSelectFarmer_Click"/>
+                                         </Grid>
 
-                                        <!-- Autocomplete Popup -->
-                                        <Border x:Name="PopupFarmerResults" Background="White" BorderBrush="#2E7D32" BorderThickness="1.5" CornerRadius="0,0,8,8" MaxHeight="220" Visibility="Collapsed" Margin="0,2,0,0" Panel.ZIndex="100">
-                                            <ListBox x:Name="ListFarmers" BorderThickness="0" SelectionChanged="ListFarmers_SelectionChanged" PreviewKeyDown="ListFarmers_PreviewKeyDown">
-                                                <ListBox.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Padding="10,8" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Border Background="#E8F5E9" CornerRadius="14" Width="28" Height="28" Margin="0,0,8,0">
-                                                                    <TextBlock Text="👨‍🌾" Foreground="#2E7D32" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding FarmerName}" FontWeight="Bold" FontSize="13" Foreground="#1E2422"/>
-                                                                    <TextBlock FontSize="11.5" Foreground="#6C757D">
-                                                                        <Run Text="{Binding MobileNumber}"/>
-                                                                        <Run Text=" • "/>
-                                                                        <Run Text="{Binding VillageName}"/>
-                                                                    </TextBlock>
-                                                                </StackPanel>
-                                                            </Grid>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ListBox.ItemTemplate>
-                                            </ListBox>
-                                        </Border>
-                                    </StackPanel>
+                                         <!-- Real-Time Filtered Farmer Dropdown Floating Popup -->
+                                         <Popup x:Name="PopupFarmerResults" IsOpen="False" StaysOpen="False" PlacementTarget="{Binding ElementName=TxtFarmerSearch}" Placement="Bottom" PopupAnimation="Fade" AllowsTransparency="True">
+                                             <Border Background="White" BorderBrush="#0EA5E9" BorderThickness="1.5" CornerRadius="6" Width="{Binding ElementName=TxtFarmerSearch, Path=ActualWidth}" MaxHeight="220" Margin="0,2,0,0">
+                                                 <Border.Effect>
+                                                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.15" Color="Black"/>
+                                                 </Border.Effect>
+                                                 <ListBox x:Name="ListFarmers" BorderThickness="0" PreviewMouseLeftButtonUp="ListFarmers_PreviewMouseLeftButtonUp" PreviewKeyDown="ListFarmers_PreviewKeyDown">
+                                                     <ListBox.ItemTemplate>
+                                                         <DataTemplate>
+                                                             <Border Padding="10,8" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Background="Transparent">
+                                                                 <Grid>
+                                                                     <Grid.ColumnDefinitions>
+                                                                         <ColumnDefinition Width="*"/>
+                                                                         <ColumnDefinition Width="Auto"/>
+                                                                     </Grid.ColumnDefinitions>
+                                                                     <TextBlock Grid.Column="0" Text="{Binding FarmerName}" FontWeight="Bold" FontSize="13" Foreground="#1E2422" VerticalAlignment="Center"/>
+                                                                     <TextBlock Grid.Column="1" Text="{Binding MobileNumber}" FontSize="12" Foreground="#6C757D" VerticalAlignment="Center"/>
+                                                                 </Grid>
+                                                             </Border>
+                                                         </DataTemplate>
+                                                     </ListBox.ItemTemplate>
+                                                 </ListBox>
+                                             </Border>
+                                         </Popup>
+
+                                         <!-- Hidden compatibility ComboBox -->
+                                         <ComboBox x:Name="CmbFarmerSelect" Visibility="Collapsed"/>
+                                     </StackPanel>
 
                                     <!-- Selected Farmer Info Badge -->
                                     <Border Grid.Column="2" x:Name="PanelSelectedFarmer" Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="1" CornerRadius="8" Padding="10" Visibility="Visible">
@@ -322,22 +315,47 @@
                                 <Grid Margin="0,0,0,10">
                                     <TextBox x:Name="TxtProductSearch" Style="{StaticResource InputTextBox}" Height="40" KeyUp="TxtProductSearch_KeyUp" PreviewKeyDown="TxtProductSearch_PreviewKeyDown"/>
                                     <TextBlock x:Name="TxtProductSearchPlaceholder" Text="🔍 Search product by name / company / batch / barcode..." IsHitTestVisible="False" Foreground="#9CA3AF" FontSize="13" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                </Grid>
+                                    <!-- Autocomplete Products Floating Popup -->
+                                    <Popup x:Name="PopupProductResults" IsOpen="False" StaysOpen="False" PlacementTarget="{Binding ElementName=TxtProductSearch}" Placement="Bottom" PopupAnimation="Fade" AllowsTransparency="True">
+                                        <Border Background="White" BorderBrush="#0EA5E9" BorderThickness="1.5" CornerRadius="6" Width="{Binding ElementName=TxtProductSearch, Path=ActualWidth}" MaxHeight="220" Margin="0,2,0,0">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.15" Color="Black"/>
+                                            </Border.Effect>
+                                            <ListBox x:Name="ListProducts" BorderThickness="0" PreviewMouseLeftButtonUp="ListProducts_PreviewMouseLeftButtonUp" PreviewKeyDown="ListProducts_PreviewKeyDown">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Padding="10,8" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Background="Transparent">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="#1E2422"/>
+                                                                    <TextBlock FontSize="11.5" Foreground="#6C757D" Margin="0,1,0,0">
+                                                                        <Run Text="{Binding Company}"/>
+                                                                        <Run Text=" • Batch: "/>
+                                                                        <Run Text="{Binding BatchNo}"/>
+                                                                    </TextBlock>
+                                                                </StackPanel>
+                                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding SalePrice, StringFormat='₹{0:N2}'}" FontWeight="Bold" FontSize="13" Foreground="#2E7D32" HorizontalAlignment="Right"/>
+                                                                    <TextBlock FontSize="11.5" Foreground="#6C757D" HorizontalAlignment="Right" Margin="0,1,0,0">
+                                                                        <Run Text="Stock: "/>
+                                                                        <Run Text="{Binding StockQty}" FontWeight="SemiBold"/>
+                                                                    </TextBlock>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </Border>
+                                    </Popup>
 
-                                <!-- Autocomplete Products List Table -->
-                                <Border x:Name="PopupProductResults" Background="White" BorderBrush="#2E7D32" BorderThickness="1.5" CornerRadius="8" MaxHeight="220" Visibility="Collapsed" Margin="0,0,0,10">
-                                    <DataGrid x:Name="GridProductSuggestions" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" RowHeight="36" GridLinesVisibility="Horizontal" SelectionChanged="GridProductSuggestions_SelectionChanged" PreviewKeyDown="GridProductSuggestions_PreviewKeyDown">
-                                        <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Product" Binding="{Binding Name}" Width="1.8*" FontWeight="Bold"/>
-                                            <DataGridTextColumn Header="Company" Binding="{Binding Company}" Width="1*"/>
-                                            <DataGridTextColumn Header="Batch" Binding="{Binding BatchNo}" Width="90"/>
-                                            <DataGridTextColumn Header="Expiry" Binding="{Binding ExpiryDisplay}" Width="100"/>
-                                            <DataGridTextColumn Header="Stock" Binding="{Binding StockQty}" Width="70" FontWeight="Bold"/>
-                                            <DataGridTextColumn Header="Price (₹)" Binding="{Binding SalePrice, StringFormat=N2}" Width="90" FontWeight="Bold"/>
-                                            <DataGridTextColumn Header="GST" Binding="{Binding GSTPercent, StringFormat={}{0}%}" Width="60"/>
-                                        </DataGrid.Columns>
-                                    </DataGrid>
-                                </Border>
+                                    <!-- Hidden DataGrid for backward compatibility -->
+                                    <DataGrid x:Name="GridProductSuggestions" Visibility="Collapsed"/>
+                                </Grid>
 
                                 <!-- Selected Product Add Bar -->
                                 <Border x:Name="PanelAddBar" Background="#F8FAF9" BorderBrush="#E0E5E2" BorderThickness="1" CornerRadius="8" Padding="12" Visibility="Collapsed">
