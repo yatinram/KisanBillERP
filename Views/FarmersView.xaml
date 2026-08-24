@@ -353,8 +353,8 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Ellipse Width="9" Height="9" Fill="{Binding Status, Converter={StaticResource StatusToBrushConverter}}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="{Binding Statustext}" VerticalAlignment="Center" FontSize="13"/>
+                                    <Ellipse Width="8" Height="8" Fill="{Binding Status, Converter={StaticResource StatusToBrushConverter}}" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" FontSize="12.5" FontWeight="SemiBold"/>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

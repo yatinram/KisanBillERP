@@ -154,7 +154,7 @@
 					<TextBlock Text="Here's what's happening in your shop today" FontSize="12.5" Foreground="#9A9A94" Margin="0,4,0,0"/>
 				</StackPanel>
 				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right" VerticalAlignment="Center">
-					<ComboBox x:Name="CmbPeriod" Style="{StaticResource ModernCombo}" Width="140" Height="38" Margin="0,0,0,10" SelectionChanged="CmbPeriod_SelectionChanged">
+					<ComboBox x:Name="CmbPeriod" Style="{StaticResource ModernCombo}" Width="140" Height="38" Margin="0,0,10,0" SelectionChanged="CmbPeriod_SelectionChanged">
 						<ComboBoxItem Tag="today" IsSelected="True">Today</ComboBoxItem>
 						<ComboBoxItem Tag="week" Padding="10,8">This week</ComboBoxItem>
 						<ComboBoxItem Tag="month" Padding="10,8">This month</ComboBoxItem>

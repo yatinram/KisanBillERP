@@ -3,6 +3,65 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Invoice Details &amp; Preview" Height="720" Width="880" 
         WindowStartupLocation="CenterOwner" Background="#F4F6F5">
+
+    <Window.Resources>
+        <!-- Primary Theme Colors -->
+        <SolidColorBrush x:Key="AccentGreen" Color="#2E7D32"/>
+        <SolidColorBrush x:Key="AccentGreenDark" Color="#1B5E20"/>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentGreen}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentGreenDark}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#374151"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F3F4F6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,66 +72,89 @@
         </Grid.RowDefinitions>
         
         <!-- Header -->
-        <Grid Grid.Row="0" Margin="0,0,0,20">
+        <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0">
-                <TextBlock x:Name="TxtInvoiceNo" FontSize="24" FontWeight="Bold" Foreground="#2E7D32"/>
-                <TextBlock x:Name="TxtDate" FontSize="14" Foreground="#666666"/>
+                <TextBlock x:Name="TxtInvoiceNo" FontSize="22" FontWeight="Bold" Foreground="#2E7D32"/>
+                <TextBlock x:Name="TxtDate" FontSize="13" Foreground="#6C757D" Margin="0,2,0,0"/>
             </StackPanel>
-            <Button x:Name="BtnCloseTop" Grid.Column="1" Content="✕" Width="30" Height="30" 
-                    Background="Transparent" BorderThickness="0" FontSize="18" FontWeight="Bold" Foreground="#666666" 
-                    Click="BtnClose_Click" VerticalAlignment="Top"/>
+            <Button x:Name="BtnCloseTop" Grid.Column="1" Content="✕" Width="32" Height="32" 
+                    Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Foreground="#6C757D" Cursor="Hand"
+                    Click="BtnClose_Click" VerticalAlignment="Top">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="16">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E5E7EB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
         </Grid>
 
         <!-- Section 1: Customer details & Payment method badge -->
-        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+        <Border Grid.Row="1" Background="White" BorderBrush="#E0E5E2" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="Customer Details" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
-                    <TextBlock x:Name="TxtCustomerName" FontSize="14" FontWeight="SemiBold"/>
-                    <TextBlock x:Name="TxtCustomerPhone" FontSize="14" Foreground="#555555" Margin="0,5,0,0"/>
+                    <TextBlock Text="Customer Details" FontWeight="Bold" FontSize="14" Foreground="#1E2422" Margin="0,0,0,6"/>
+                    <TextBlock x:Name="TxtCustomerName" FontSize="14" FontWeight="SemiBold" Foreground="#374151"/>
+                    <TextBlock x:Name="TxtCustomerPhone" FontSize="13" Foreground="#6C757D" Margin="0,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="1" Background="#E8F5E9" CornerRadius="12" Padding="10,5" VerticalAlignment="Top">
-                    <TextBlock x:Name="TxtPaymentMethod" Text="Payment: Cash" Foreground="#2E7D32" FontWeight="SemiBold"/>
+                <Border Grid.Column="1" Background="#E8F5E9" CornerRadius="12" Padding="12,5" VerticalAlignment="Top">
+                    <TextBlock x:Name="TxtPaymentMethod" Text="Payment: Cash" Foreground="#2E7D32" FontWeight="Bold" FontSize="12.5"/>
                 </Border>
             </Grid>
         </Border>
 
         <!-- Section 2: Invoice Items -->
         <DataGrid x:Name="GridItems" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" 
-                  Background="White" RowBackground="White" AlternatingRowBackground="#F9F9F9"
-                  HeadersVisibility="Column" BorderBrush="#DDDDDD" BorderThickness="1">
+                  Background="White" RowBackground="White" AlternatingRowBackground="#FAFBFB"
+                  HeadersVisibility="Column" BorderBrush="#E0E5E2" BorderThickness="1"
+                  RowHeight="40" Style="{StaticResource PremiumDataGridStyle}">
+            <DataGrid.Resources>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#F8FAF9"/>
+                    <Setter Property="Foreground" Value="#495057"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="12.5"/>
+                    <Setter Property="Padding" Value="12,8"/>
+                </Style>
+            </DataGrid.Resources>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" FontWeight="Normal"/>
-                <DataGridTextColumn Header="Qty" Binding="{Binding Qty}" Width="80" FontWeight="Normal"/>
-                <DataGridTextColumn Header="Rate" Binding="{Binding Rate, StringFormat='₹ {0:N2}'}" Width="100" FontWeight="Normal"/>
-                <DataGridTextColumn Header="GST %" Binding="{Binding GSTPercent, StringFormat='{}{0}%'}" Width="80" FontWeight="Normal"/>
-                <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat='₹ {0:N2}'}" Width="120" FontWeight="SemiBold"/>
+                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" FontWeight="Bold"/>
+                <DataGridTextColumn Header="Qty" Binding="{Binding Qty}" Width="80"/>
+                <DataGridTextColumn Header="Rate" Binding="{Binding Rate, StringFormat='₹ {0:N2}'}" Width="110"/>
+                <DataGridTextColumn Header="GST %" Binding="{Binding GSTPercent, StringFormat='{}{0}%'}" Width="80"/>
+                <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat='₹ {0:N2}'}" Width="130" FontWeight="Bold"/>
             </DataGrid.Columns>
         </DataGrid>
 
         <!-- Section 3: Totals Summary -->
-        <Border Grid.Row="3" Background="White" CornerRadius="8" Padding="15" Margin="0,20,0,20">
-            <StackPanel HorizontalAlignment="Right" Width="250">
-                <Grid Margin="0,0,0,10">
-                    <TextBlock Text="SubTotal:" Foreground="#666666"/>
-                    <TextBlock x:Name="TxtSubTotal" Text="10.00" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+        <Border Grid.Row="3" Background="White" BorderBrush="#E0E5E2" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,16,0,16">
+            <StackPanel HorizontalAlignment="Right" Width="260">
+                <Grid Margin="0,0,0,6">
+                    <TextBlock Text="SubTotal:" Foreground="#6C757D" FontSize="13"/>
+                    <TextBlock x:Name="TxtSubTotal" Text="₹ 0.00" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="13"/>
                 </Grid>
-                <Grid Margin="0,0,0,10">
-                    <TextBlock Text="GST Total:" Foreground="#666666"/>
-                    <TextBlock x:Name="TxtGstTotal" Text="10.00" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                <Grid Margin="0,0,0,6">
+                    <TextBlock Text="GST Total:" Foreground="#6C757D" FontSize="13"/>
+                    <TextBlock x:Name="TxtGstTotal" Text="₹ 0.00" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="13"/>
                 </Grid>
-                <Rectangle Height="1" Fill="#DDDDDD" Margin="0,5,0,10"/>
+                <Rectangle Height="1" Fill="#E5E7EB" Margin="0,4,0,8"/>
                 <Grid>
-                    <TextBlock Text="Grand Total:" FontWeight="Bold" FontSize="16"/>
-                    <TextBlock x:Name="TxtGrandTotal" Text="10.00" HorizontalAlignment="Right" FontWeight="Bold" FontSize="16" Foreground="#2E7D32"/>
+                    <TextBlock Text="Grand Total:" FontWeight="Bold" FontSize="15" Foreground="#1E2422"/>
+                    <TextBlock x:Name="TxtGrandTotal" Text="₹ 0.00" HorizontalAlignment="Right" FontWeight="Bold" FontSize="16" Foreground="#2E7D32"/>
                 </Grid>
             </StackPanel>
         </Border>
@@ -80,12 +162,12 @@
         <!-- Footer -->
         <Grid Grid.Row="4">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="BtnClose" Content="Close" Style="{StaticResource SecondaryButton}" Width="100" Height="40" Margin="0,0,0,10" Click="BtnClose_Click"/>
-                <Button x:Name="BtnWhatsApp" Content="💬 Send via WhatsApp" Height="40" Margin="0,0,0,10" Padding="16,0"
+                <Button x:Name="BtnClose" Content="Close" Style="{StaticResource SecondaryButton}" Width="90" Height="38" Margin="0,0,10,0" Click="BtnClose_Click"/>
+                <Button x:Name="BtnWhatsApp" Content="💬 Send via WhatsApp" Height="38" Margin="0,0,10,0" Padding="16,0"
                         Background="#25D366" Foreground="White" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" Click="BtnWhatsApp_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -96,7 +178,7 @@
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
-                <Button x:Name="BtnPrint" Content="🖨 Print" Style="{StaticResource PrimaryButton}" Width="130" Height="40" Click="BtnPrint_Click"/>
+                <Button x:Name="BtnPrint" Content="🖨 Print" Style="{StaticResource PrimaryButton}" Height="38" Padding="20,0" Click="BtnPrint_Click"/>
             </StackPanel>
         </Grid>
     </Grid>

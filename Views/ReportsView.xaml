@@ -128,31 +128,27 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
-		<!-- 1. Header -->
-		<Grid Grid.Row="0" Margin="0,0,0,16">
-			<StackPanel VerticalAlignment="Center">
-				<TextBlock Text="Reports &amp; Business Analytics" FontSize="22" FontWeight="Bold" Foreground="{StaticResource HeadingText}"/>
+		<!-- 1. Header with Right-Aligned Report Selector -->
+		<Grid Grid.Row="0" Margin="0,0,0,18">
+			<TextBlock Text="Reports &amp; Business Analytics" FontSize="22" FontWeight="Bold" Foreground="{StaticResource HeadingText}" VerticalAlignment="Center"/>
+
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+				<TextBlock Text="Reports :" FontSize="15" FontWeight="Bold" Foreground="{StaticResource HeadingText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+				<ComboBox x:Name="CmbReportSelector" Width="320" Height="38" VerticalAlignment="Center" SelectionChanged="CmbReportSelector_SelectionChanged">
+					<ComboBoxItem Content="📄  Sales &amp; Billing Report" Tag="Sales" IsSelected="True"/>
+					<ComboBoxItem Content="📦  Stock Valuation &amp; Expiry" Tag="Stock"/>
+					<ComboBoxItem Content="💳  Udhar &amp; Customer Ledger" Tag="Udhar"/>
+					<ComboBoxItem Content="📋  GST Tax Summary" Tag="GST"/>
+					<ComboBoxItem Content="🛍️  Purchases &amp; Supplier Report" Tag="Purchase"/>
+				</ComboBox>
 			</StackPanel>
 		</Grid>
 
-		<!-- 2. Report Selector (dropdown) -->
-		<StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,14">
-			<TextBlock Text="Reports :" FontSize="16" FontWeight="Bold" Foreground="{StaticResource HeadingText}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-			<ComboBox x:Name="CmbReportSelector" Width="360" Height="38" VerticalAlignment="Center" SelectionChanged="CmbReportSelector_SelectionChanged">
-				<ComboBoxItem Content="📄  Sales &amp; Billing Report" Tag="Sales" IsSelected="True"/>
-				<ComboBoxItem Content="📦  Stock Valuation &amp; Expiry" Tag="Stock"/>
-				<ComboBoxItem Content="💳  Udhar &amp; Customer Ledger" Tag="Udhar"/>
-				<ComboBoxItem Content="📋  GST Tax Summary" Tag="GST"/>
-				<ComboBoxItem Content="🛍️  Purchases &amp; Supplier Report" Tag="Purchase"/>
-			</ComboBox>
-		</StackPanel>
-
-		<!-- 3. Stat Cards Row -->
-		<Grid Grid.Row="2" Margin="0,0,0,14">
+		<!-- 2. Stat Cards Row -->
+		<Grid Grid.Row="1" Margin="0,0,0,14">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="14"/>
@@ -220,8 +216,8 @@
 			</Border>
 		</Grid>
 
-		<!-- 4. Main Report Body -->
-		<Border Grid.Row="3" Style="{StaticResource CardStyle}" Padding="20">
+		<!-- 3. Main Report Body -->
+		<Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="20">
 			<Grid>
 				<Grid.RowDefinitions>
 					<RowDefinition Height="Auto"/>

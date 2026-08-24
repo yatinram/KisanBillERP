@@ -107,26 +107,12 @@ namespace KrushiBillERP.Views
                     return;
                 }
 
-                // If NO farmer selected, DO NOT load any bills! Show empty state placeholder.
-                if (_selectedFarmer == null)
-                {
-                    PanelEmpty.Visibility = Visibility.Visible;
-                    GridInvoices.Visibility = Visibility.Collapsed;
-                    TxtEmptyTitle.Text = "Select a Farmer to View Bill History";
-                    TxtEmptySubtitle.Text = "Please search and select a farmer above to display their bills.";
-                    TxtTotalBadge.Text = "0 Bills";
-                    if (TxtShowingInfo != null) TxtShowingInfo.Text = "Showing 0 to 0 of 0 entries";
-                    GridInvoices.ItemsSource = null;
-                    BtnPrev.IsEnabled = false;
-                    BtnNext.IsEnabled = false;
-                    PanelPageNums.Children.Clear();
-                    return;
-                }
+                int farmerId = _selectedFarmer != null ? _selectedFarmer.FarmerId : 0;
 
                 var (items, total, _, _, _) = DatabaseHelper.GetInvoicesPaged(
-                    search: null,
+                    search: string.IsNullOrWhiteSpace(search) ? null : search,
                     customerId: 0,
-                    farmerId: _selectedFarmer.FarmerId,
+                    farmerId: farmerId,
                     paymentMethod: null,
                     dateRange: (from.HasValue || to.HasValue) ? "Custom" : "All Time",
                     customStart: from,
@@ -149,7 +135,7 @@ namespace KrushiBillERP.Views
                     PanelEmpty.Visibility = Visibility.Visible;
                     GridInvoices.Visibility = Visibility.Collapsed;
                     TxtEmptyTitle.Text = "No Bills Found";
-                    TxtEmptySubtitle.Text = $"No bill records found for {_selectedFarmer.FarmerName}.";
+                    TxtEmptySubtitle.Text = _selectedFarmer != null ? $"No bill records found for {_selectedFarmer.FarmerName}." : "No bill records found in system.";
                 }
                 else
                 {
@@ -256,7 +242,15 @@ namespace KrushiBillERP.Views
 
         private void TxtFarmerSearch_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Down || e.Key == Key.Enter) return;
+            if (e.Key == Key.Enter)
+            {
+                PopupFarmer.Visibility = Visibility.Collapsed;
+                _page = 1;
+                LoadData();
+                return;
+            }
+
+            if (e.Key == Key.Down) return;
 
             string search = TxtFarmerSearch.Text.Trim();
             HintFarmer.Visibility = string.IsNullOrEmpty(search) ? Visibility.Visible : Visibility.Collapsed;
@@ -275,9 +269,9 @@ namespace KrushiBillERP.Views
                     _selectedFarmer = null;
                     TxtMobile.Text = string.Empty;
                     TxtVillage.Text = string.Empty;
-                    _page = 1;
-                    LoadData();
                 }
+                _page = 1;
+                LoadData();
             }
         }
 

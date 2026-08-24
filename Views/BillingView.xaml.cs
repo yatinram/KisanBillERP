@@ -226,11 +226,6 @@ namespace KrushiBillERP.Views
 
         private void SetActiveTab(string tab)
         {
-            BtnNewBillTab.BorderBrush = Brushes.Transparent;
-            BtnNewBillTab.Foreground = Brushes.White;
-            BtnBillHistoryTab.BorderBrush = (Brush)FindResource("CardBorder");
-            BtnBillHistoryTab.Foreground = BrushMutedText;
-
             if (tab == "add")
             {
                 ViewAddBill.Visibility = Visibility.Visible;

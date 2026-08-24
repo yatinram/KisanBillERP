@@ -400,7 +400,7 @@
 												Background="{Binding Status, Converter={StaticResource StatusToBrushConverter}}">
 											<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 												<Ellipse Width="7" Height="7" Fill="White" Margin="0,0,5,0" Opacity="0.9"/>
-												<TextBlock Text="{Binding Statustext}" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+												<TextBlock Text="{Binding StatusText}" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
 											</StackPanel>
 										</Border>
 									</DataTemplate>
