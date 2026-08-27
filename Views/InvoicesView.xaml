@@ -280,7 +280,7 @@
                                     <TextBlock Text="End Date" FontSize="12" Foreground="#6C757D"/>
                                     <DatePicker x:Name="PopupDpTo" Height="36" Margin="0,6,0,10" />
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                                        <Button Content="Clear" Click="BtnResetFilters_Click" Height="36" Padding="12,0" Margin="0,0,8,0" Background="#F3F4F6" BorderBrush="#D1D5DB"/>
+                                        <Button Content="🔄 Reset" Click="BtnResetFilters_Click" Style="{StaticResource SecondaryButton}" Height="36" Padding="14,0" Margin="0,0,8,0"/>
                                         <Button Content="Apply" Click="BtnApplyFilters_Click" Height="36" Padding="12,0" Background="{StaticResource PrimaryColor}" Foreground="White"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -342,24 +342,76 @@
                     </DataGrid.Resources>
 
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="No" Binding="{Binding RowNo}" Width="60" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
-                        <DataGridTextColumn Header="Bill No." Binding="{Binding InvoiceNo}" Width="200">
+                        <DataGridTextColumn Header="No" Binding="{Binding RowNo}" Width="50" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
+                        <DataGridTextColumn Header="Invoice" Binding="{Binding InvoiceNo}" Width="150">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="FontWeight" Value="SemiBold"/>
                                     <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Date" Binding="{Binding InvoiceDate, StringFormat='dd MMM yyyy'}" Width="140" ElementStyle="{StaticResource CellTextBlockCenter}" />
-                        <DataGridTextColumn Header="Farmer Name" Binding="{Binding FarmerName}" Width="*" ElementStyle="{StaticResource CellTextBlockCenter}" />
-                        <DataGridTextColumn Header="Amount" Binding="{Binding GrandTotal, StringFormat=₹{0:N2}}" Width="140" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
-                        <DataGridTemplateColumn Header="Action" Width="220">
+                        <DataGridTextColumn Header="Date" Binding="{Binding InvoiceDate, StringFormat='dd MMM yyyy'}" Width="110" ElementStyle="{StaticResource CellTextBlockCenter}" />
+                        <DataGridTextColumn Header="Farmer" Binding="{Binding FarmerName}" Width="*" ElementStyle="{StaticResource CellTextBlockCenter}" />
+                        <DataGridTextColumn Header="Qty" Binding="{Binding TotalQty}" Width="65" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
+                        <DataGridTextColumn Header="Grand Total" Binding="{Binding GrandTotal, StringFormat=₹{0:N2}}" Width="120" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
+                        <DataGridTextColumn Header="Payment" Binding="{Binding PaymentMethod}" Width="95" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
+                        <DataGridTextColumn Header="Paid" Binding="{Binding PaidAmount, StringFormat=₹{0:N2}}" Width="105" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
+                        <DataGridTextColumn Header="Payable" Binding="{Binding PayableAmount, StringFormat=₹{0:N2}}" Width="105" ElementStyle="{StaticResource CellTextBlockCenterBoth}" />
+                        <DataGridTemplateColumn Header="Status" Width="125">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="10" Padding="8,3" HorizontalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#E8F5E9"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Partially Returned">
+                                                        <Setter Property="Background" Value="#FFF3E0"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Returned">
+                                                        <Setter Property="Background" Value="#FFEBEE"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Cancelled">
+                                                        <Setter Property="Background" Value="#F5F5F5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock HorizontalAlignment="Center" FontSize="11" FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="● Active"/>
+                                                    <Setter Property="Foreground" Value="#2E7D32"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Partially Returned">
+                                                            <Setter Property="Text" Value="● Partial Return"/>
+                                                            <Setter Property="Foreground" Value="#E65100"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Returned">
+                                                            <Setter Property="Text" Value="● Returned"/>
+                                                            <Setter Property="Foreground" Value="#C62828"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Cancelled">
+                                                            <Setter Property="Text" Value="● Cancelled"/>
+                                                            <Setter Property="Foreground" Value="#757575"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Action" Width="180">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button x:Name="BtnEditRow" Content="Edit" Click="BtnEdit_Click" Style="{StaticResource GreenPrimaryButton}" Tag="{Binding Id}" Margin="0,0,6,0" Loaded="BtnEditRow_Loaded"/>
-                                        <Button x:Name="BtnDeleteRow" Content="Delete" Click="BtnDelete_Click" Style="{StaticResource DeleteActionBtn}" Tag="{Binding Id}" Margin="0,0,6,0" Loaded="BtnDeleteRow_Loaded"/>
+                                        <Button x:Name="BtnEditRow" Content="Edit" Click="BtnEdit_Click" Style="{StaticResource GreenPrimaryButton}" Tag="{Binding Id}" Margin="0,0,4,0" Loaded="BtnEditRow_Loaded"/>
+                                        <Button x:Name="BtnDeleteRow" Content="Delete" Click="BtnDelete_Click" Style="{StaticResource DeleteActionBtn}" Tag="{Binding Id}" Margin="0,0,4,0" Loaded="BtnDeleteRow_Loaded"/>
                                         <Button Content="PDF" Click="BtnPdf_Click" Style="{StaticResource PdfActionBtn}" Tag="{Binding Id}"/>
                                     </StackPanel>
                                 </DataTemplate>

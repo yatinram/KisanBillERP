@@ -268,6 +268,7 @@ namespace KrushiBillERP.Models
         public string PaymentReference { get; set; }
         public string Notes { get; set; }
         public string Status { get; set; } = "Active"; // "Active", "Cancelled"
+        public int TotalQty { get; set; }
         public int RowNo { get; set; }
     }
 
@@ -482,5 +483,37 @@ namespace KrushiBillERP.Models
         public int TotalQty => Quantity + FreeQuantity;
         public string PurchaseDateDisplay => PurchaseDate.ToString("dd MMM yyyy");
         public string ExpiryDisplay => ExpiryDate.HasValue ? ExpiryDate.Value.ToString("dd MMM yyyy") : "-";
+    }
+
+    /// <summary>
+    /// Represents customer sales return history for a specific product.
+    /// </summary>
+    public class ProductSalesReturnRecord
+    {
+        public int SalesReturnId { get; set; }
+        public string ReturnNumber { get; set; }
+        public DateTime ReturnDate { get; set; }
+        public string CustomerName { get; set; }
+        public string CustomerPhone { get; set; }
+        public string InvoiceNo { get; set; }
+        public int ReturnQuantity { get; set; }
+        public decimal Rate { get; set; }
+        public decimal Amount { get; set; }
+        public string AdjustmentType { get; set; }
+        public string ReturnDateDisplay => ReturnDate.ToString("dd MMM yyyy");
+    }
+
+    /// <summary>
+    /// Represents stock adjustment and supplier return history for a specific product.
+    /// </summary>
+    public class ProductStockMovementRecord
+    {
+        public DateTime MovementDate { get; set; }
+        public string MovementType { get; set; }
+        public string BatchNumber { get; set; }
+        public int DeltaQty { get; set; }
+        public string PartyOrReason { get; set; }
+        public string Notes { get; set; }
+        public string DateDisplay => MovementDate.ToString("dd MMM yyyy");
     }
 }

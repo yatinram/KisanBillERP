@@ -18,6 +18,7 @@ namespace KrushiBillERP.Views
         private readonly ObservableCollection<InvoiceItem> _items = new ObservableCollection<InvoiceItem>();
         private Farmer _selectedFarmer = null;
         private Product _selectedProductBatch = null;
+        private bool _isUserManualAmountReceived = false;
 
         private static readonly SolidColorBrush BrushAccentGreen = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#059669"));
         private static readonly SolidColorBrush BrushMutedText = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B"));
@@ -131,6 +132,7 @@ namespace KrushiBillERP.Views
 
             // Reset edit state and save button label
             _editingInvoiceId = 0;
+            _isUserManualAmountReceived = false;
             if (BtnSaveBill != null) BtnSaveBill.Content = "✓ Save Bill";
             if (BtnChangeFarmer != null) BtnChangeFarmer.IsEnabled = true;
             // Show post-save notice in new bill mode
@@ -811,7 +813,7 @@ namespace KrushiBillERP.Views
             {
                 if (PanelAmountReceived != null) PanelAmountReceived.Visibility = Visibility.Visible;
                 if (PanelUpiRef != null) PanelUpiRef.Visibility = Visibility.Visible;
-                if (TxtAmountReceived != null && (string.IsNullOrWhiteSpace(TxtAmountReceived.Text) || TxtAmountReceived.Text == "0.00"))
+                if (TxtAmountReceived != null && (!_isUserManualAmountReceived || string.IsNullOrWhiteSpace(TxtAmountReceived.Text) || TxtAmountReceived.Text == "0.00"))
                 {
                     TxtAmountReceived.Text = grandTotal.ToString("F2");
                 }
@@ -820,7 +822,7 @@ namespace KrushiBillERP.Views
             {
                 if (PanelAmountReceived != null) PanelAmountReceived.Visibility = Visibility.Visible;
                 if (PanelUpiRef != null) PanelUpiRef.Visibility = Visibility.Collapsed;
-                if (TxtAmountReceived != null && (string.IsNullOrWhiteSpace(TxtAmountReceived.Text) || TxtAmountReceived.Text == "0.00"))
+                if (TxtAmountReceived != null && (!_isUserManualAmountReceived || string.IsNullOrWhiteSpace(TxtAmountReceived.Text) || TxtAmountReceived.Text == "0.00"))
                 {
                     TxtAmountReceived.Text = grandTotal.ToString("F2");
                 }
@@ -854,6 +856,7 @@ namespace KrushiBillERP.Views
 
         private void TxtAmountReceived_KeyUp(object sender, KeyEventArgs e)
         {
+            _isUserManualAmountReceived = true;
             decimal.TryParse(TxtGrandTotal.Text.Replace("₹", "").Trim(), out decimal grand);
             RecalculateOutstanding(grand);
         }
@@ -989,7 +992,7 @@ namespace KrushiBillERP.Views
                     CustomerName = _selectedFarmer.FarmerName,
                     MobileNumber = _selectedFarmer.MobileNumber,
                     VillageName = _selectedFarmer.VillageName,
-                    InvoiceDate = DpBillDate.SelectedDate ?? DateTime.Now,
+                    InvoiceDate = DpBillDate.SelectedDate.HasValue ? DpBillDate.SelectedDate.Value.Date.Add(DateTime.Now.TimeOfDay) : DateTime.Now,
                     SubTotal = subTotal,
                     Discount = discountAmount,
                     TaxableAmount = taxable,

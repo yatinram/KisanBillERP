@@ -127,7 +127,11 @@ namespace KrushiBillERP.Views
             foreach (var pi in rawItems)
             {
                 int alreadyReturned = DatabaseHelper.GetAlreadyReturnedQty(pi.PurchaseItemId);
-                int returnable = Math.Max(0, pi.Quantity - alreadyReturned);
+                int maxByPurchase = Math.Max(0, pi.Quantity - alreadyReturned);
+
+                // Cannot return more than current stock (items already sold cannot be returned to supplier)
+                int currentStock = DatabaseHelper.GetProductCurrentStock(pi.ProductId);
+                int returnable = Math.Min(maxByPurchase, currentStock);
 
                 var item = new PurchaseReturnItem
                 {

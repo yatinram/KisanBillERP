@@ -103,10 +103,11 @@ namespace KrushiBillERP.Views
             });
 
             var breakdown = DatabaseHelper.GetRevenueBreakdown(RangeStart, RangeEnd);
+            decimal totalShopUdhar = DatabaseHelper.GetTotalOutstandingUdhar();
             Dispatcher.Invoke(() =>
             {
                 TxtSalesRevenue.Text = breakdown.Total.ToString("C2");
-                TxtUdharRevenue.Text = breakdown.Udhar.ToString("C2");
+                TxtUdharRevenue.Text = totalShopUdhar.ToString("C2");
                 TxtTotalRevenue.Text = breakdown.Total.ToString("C2");
                 TxtCashAmount.Text = breakdown.Cash.ToString("C2");
                 TxtOnlineAmount.Text = breakdown.Online.ToString("C2");
@@ -139,12 +140,26 @@ namespace KrushiBillERP.Views
 
             if (periodTag == "today")
             {
-                for (int h = 0; h < 24; h++)
+                var slots = new[]
                 {
-                    var key = h.ToString("00");
-                    labels.Add(key + ":00");
-                    salesValues.Add(FindValue(sales, key));
-                    purchaseValues.Add(FindValue(purchases, key));
+                    ("Night / Early (00:00 - 06:00)", 0, 5),
+                    ("Morning (06:00 - 12:00)", 6, 11),
+                    ("Afternoon (12:00 - 17:00)", 12, 16),
+                    ("Evening (17:00 - 24:00)", 17, 23)
+                };
+
+                foreach (var slot in slots)
+                {
+                    labels.Add(slot.Item1);
+                    decimal sSum = 0, pSum = 0;
+                    for (int h = slot.Item2; h <= slot.Item3; h++)
+                    {
+                        var key = h.ToString("00");
+                        sSum += FindValue(sales, key);
+                        pSum += FindValue(purchases, key);
+                    }
+                    salesValues.Add(sSum);
+                    purchaseValues.Add(pSum);
                 }
             }
             else if (periodTag == "week")
@@ -161,12 +176,28 @@ namespace KrushiBillERP.Views
             else if (periodTag == "month")
             {
                 int daysInMonth = RangeEnd.Day;
-                for (int d = 1; d <= daysInMonth; d++)
+                var blocks = new[]
                 {
-                    var key = d.ToString("00");
-                    labels.Add(d.ToString());
-                    salesValues.Add(FindValue(sales, key));
-                    purchaseValues.Add(FindValue(purchases, key));
+                    ("Days 1 - 5", 1, 5),
+                    ("Days 6 - 10", 6, 10),
+                    ("Days 11 - 15", 11, 15),
+                    ("Days 16 - 20", 16, 20),
+                    ("Days 21 - 25", 21, 25),
+                    ($"Days 26 - {daysInMonth}", 26, daysInMonth)
+                };
+
+                foreach (var block in blocks)
+                {
+                    labels.Add(block.Item1);
+                    decimal sSum = 0, pSum = 0;
+                    for (int d = block.Item2; d <= block.Item3; d++)
+                    {
+                        var key = d.ToString("00");
+                        sSum += FindValue(sales, key);
+                        pSum += FindValue(purchases, key);
+                    }
+                    salesValues.Add(sSum);
+                    purchaseValues.Add(pSum);
                 }
             }
             else // year
@@ -193,12 +224,14 @@ namespace KrushiBillERP.Views
 
             var categoryAxis = new CategoryAxis
             {
-                Position = AxisPosition.Bottom,
+                Position = AxisPosition.Left,
+                StartPosition = 1,
+                EndPosition = 0,
                 FontSize = 11,
-                TextColor = OxyColor.Parse("#8A8A85"),
+                TextColor = OxyColor.Parse("#334155"),
                 AxislineColor = OxyColors.Transparent,
                 TicklineColor = OxyColors.Transparent,
-                GapWidth = 0.5,
+                GapWidth = 0.4,
                 IsPanEnabled = false,
                 IsZoomEnabled = false
             };
@@ -208,14 +241,14 @@ namespace KrushiBillERP.Views
 
             var valueAxis = new LinearAxis
             {
-                Position = AxisPosition.Left,
+                Position = AxisPosition.Bottom,
                 MinimumPadding = 0,
-                MaximumPadding = 0.1,
+                MaximumPadding = 0.15,
                 AbsoluteMinimum = 0,
                 FontSize = 11,
-                TextColor = OxyColor.Parse("#8A8A85"),
+                TextColor = OxyColor.Parse("#64748B"),
                 MajorGridlineStyle = LineStyle.Solid,
-                MajorGridlineColor = OxyColor.Parse("#F1F1EE"),
+                MajorGridlineColor = OxyColor.Parse("#F1F5F9"),
                 AxislineColor = OxyColors.Transparent,
                 TicklineColor = OxyColors.Transparent
             };
@@ -223,27 +256,32 @@ namespace KrushiBillERP.Views
             valueAxis.IsZoomEnabled = false;
             model.Axes.Add(valueAxis);
 
-            // ColumnSeries/ColumnItem are not available in some OxyPlot package versions.
-            // Use LineSeries plotted over category indices as a compatible alternative.
-            var salesSeries = new LineSeries
+            // Grouped Bar chart for Sales vs Purchase overview
+            var salesSeries = new BarSeries
             {
-                Title = "Sales",
-                Color = OxyColor.Parse("#2E7D32"),
-                StrokeThickness = 2,
-                MarkerType = MarkerType.None
+                Title = "Sales Revenue (₹)",
+                FillColor = OxyColor.Parse("#2E7D32"),
+                StrokeColor = OxyColors.Transparent,
+                StrokeThickness = 0,
+                LabelFormatString = "₹ {0:N0}",
+                LabelMargin = 6,
+                FontSize = 10.5
             };
-            var purchaseSeries = new LineSeries
+            var purchaseSeries = new BarSeries
             {
-                Title = "Purchase",
-                Color = OxyColor.Parse("#378ADD"),
-                StrokeThickness = 2,
-                MarkerType = MarkerType.None
+                Title = "Purchase Cost (₹)",
+                FillColor = OxyColor.Parse("#0284C7"),
+                StrokeColor = OxyColors.Transparent,
+                StrokeThickness = 0,
+                LabelFormatString = "₹ {0:N0}",
+                LabelMargin = 6,
+                FontSize = 10.5
             };
 
             for (int i = 0; i < labels.Count; i++)
             {
-                salesSeries.Points.Add(new DataPoint(i, (double)salesValues[i]));
-                purchaseSeries.Points.Add(new DataPoint(i, (double)purchaseValues[i]));
+                salesSeries.Items.Add(new BarItem((double)salesValues[i], i));
+                purchaseSeries.Items.Add(new BarItem((double)purchaseValues[i], i));
             }
 
             model.Series.Add(salesSeries);

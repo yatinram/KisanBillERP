@@ -421,8 +421,23 @@ namespace KrushiBillERP.Views
             {
                 PopupDpFrom.SelectedDate = null;
                 PopupDpTo.SelectedDate = null;
+                DpFrom.SelectedDate = null;
+                DpTo.SelectedDate = null;
+
+                _selectedFarmer = null;
+                if (TxtFarmerSearch != null) TxtFarmerSearch.Text = string.Empty;
+                if (HintFarmer != null) HintFarmer.Visibility = Visibility.Visible;
+                if (TxtMobile != null) TxtMobile.Text = string.Empty;
+                if (TxtVillage != null) TxtVillage.Text = string.Empty;
+
+                PopupFilter.IsOpen = false;
+                _page = 1;
+                LoadData();
             }
-            catch { }
+            catch
+            {
+                PopupFilter.IsOpen = false;
+            }
         }
 
         // ===================== PAGE SIZE & NAV =====================

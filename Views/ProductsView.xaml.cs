@@ -197,8 +197,16 @@ namespace KrushiBillERP.Views
                 PopupCmbCategory.SelectedIndex = 0;
                 PopupCmbCompany.SelectedIndex = 0;
                 PopupCmbStatus.SelectedIndex = 0;
+                if (TxtSearch != null) TxtSearch.Text = string.Empty;
+
+                PopupFilter.IsOpen = false;
+                _page = 1;
+                LoadProducts();
             }
-            catch { }
+            catch
+            {
+                PopupFilter.IsOpen = false;
+            }
         }
 
         private void BtnAdd_Click(object sender, RoutedEventArgs e)

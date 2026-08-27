@@ -7,69 +7,135 @@
         Background="{StaticResource LightBg}">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Sidebar -->
+        <!-- Sidebar (Dark Forest Emerald Theme) -->
         <Border Grid.Column="0" Background="{StaticResource SidebarBg}">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="18,20,0,26">
-                    <Image Source="/Assets/logo.png" Width="34" Height="34"/>
-                    <TextBlock Text="KrushiBill" Foreground="White" FontSize="18" FontWeight="Bold"
-                               VerticalAlignment="Center" Margin="10,0,0,0"/>
-                </StackPanel>
+                <!-- App Logo & Brand Header -->
+                <Border DockPanel.Dock="Top" Padding="18,18,18,16" BorderBrush="#1B3F30" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#1E4D3B" CornerRadius="10" Width="38" Height="38">
+                            <Image Source="/Assets/logo.png" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Margin="12,0,0,0">
+                            <TextBlock Text="KrushiBill" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="AGRICULTURE ERP" Foreground="#10B981" FontSize="9.5" FontWeight="Bold" Margin="0,1,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
+                <!-- Logout Button (Bottom) -->
+                <Border DockPanel.Dock="Bottom" Padding="12,10" BorderBrush="#1B3F30" BorderThickness="0,1,0,0">
+                    <Button x:Name="BtnLogout" Click="BtnLogout_Click" Cursor="Hand" Height="38">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" Background="Transparent" CornerRadius="8" Padding="12,8">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="⏻" Foreground="#F87171" FontSize="15" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Logout System" Foreground="#F87171" FontSize="13" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#3B1717"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Border>
+
+                <!-- Navigation Links ScrollViewer -->
                 <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel>
+                    <StackPanel Margin="0,12,0,12">
+                        <!-- SECTION 1: MAIN MENU -->
+                        <TextBlock Text="MAIN MENU" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="22,8,0,6"/>
                         <Button x:Name="NavDashboard" Content="🏠   Dashboard" Style="{StaticResource SideNavButton}" Click="NavDashboard_Click"/>
                         <Button x:Name="NavBilling" Content="🧾  New Billing" Style="{StaticResource SideNavButton}" Click="NavBilling_Click"/>
                         <Button x:Name="NavInvoices" Content="📜  Bill History" Style="{StaticResource SideNavButton}" Click="NavInvoices_Click"/>
                         <Button x:Name="NavSalesReturn" Content="↩️  Sales Return" Style="{StaticResource SideNavButton}" Click="NavSalesReturn_Click"/>
                         <Button x:Name="NavPaymentReceipts" Content="💳  Payment Receipts" Style="{StaticResource SideNavButton}" Click="NavPaymentReceipts_Click"/>
+
+                        <!-- SECTION 2: INVENTORY & MASTERS -->
+                        <TextBlock Text="INVENTORY &amp; MASTERS" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="22,16,0,6"/>
                         <Button x:Name="NavFarmers" Content="👨‍🌾  Farmers" Style="{StaticResource SideNavButton}" Click="NavFarmers_Click"/>
                         <Button x:Name="NavProducts" Content="🌾  Products" Style="{StaticResource SideNavButton}" Click="NavProducts_Click"/>
                         <Button x:Name="NavStock" Content="📊  Stock Management" Style="{StaticResource SideNavButton}" Click="NavStock_Click"/>
                         <Button x:Name="NavPurchase" Content="📦  Purchase Entry" Style="{StaticResource SideNavButton}" Click="NavPurchase_Click"/>
                         <Button x:Name="NavPurchaseReturn" Content="↩️  Purchase Return" Style="{StaticResource SideNavButton}" Click="NavPurchaseReturn_Click"/>
+
+                        <!-- SECTION 3: ANALYTICS & SYSTEM -->
+                        <TextBlock Text="ANALYTICS &amp; SYSTEM" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="22,16,0,6"/>
                         <Button x:Name="NavReports" Content="📈  Reports &amp; Analytics" Style="{StaticResource SideNavButton}" Click="NavReports_Click"/>
                         <Button x:Name="NavSettings" Content="⚙️  Company Settings" Style="{StaticResource SideNavButton}" Click="NavSettings_Click"/>
                     </StackPanel>
                 </ScrollViewer>
-
-                <Button DockPanel.Dock="Bottom" Content="⏻  Logout" Style="{StaticResource SideNavButton}"
-                        Margin="0,10,0,20" Click="BtnLogout_Click" Foreground="#FFB4B4"/>
             </DockPanel>
         </Border>
 
-        <!-- Main content -->
+        <!-- Main Workspace Area -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="70"/>
+                <RowDefinition Height="72"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Header: dynamically shows the logged-in user's shop & name -->
-            <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <!-- Modern Header Bar -->
+            <Border Grid.Row="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Opacity="0.03" BlurRadius="10" ShadowDepth="2" Direction="270"/>
+                </Border.Effect>
                 <Grid Margin="24,0">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock x:Name="TxtShopName" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
-                        <TextBlock x:Name="TxtShopAddress" FontSize="11" Foreground="Gray"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Shop Info Header -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtShopName" FontSize="17" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock x:Name="TxtShopAddress" FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock x:Name="TxtUserName" FontSize="13" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" Margin="0,0,0,10"/>
-                        <Border Background="{StaticResource PrimaryColor}" CornerRadius="18" Width="36" Height="36">
-                            <TextBlock x:Name="TxtUserInitial" Foreground="White" FontWeight="Bold" FontSize="15"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                    <!-- Center / Right Header Quick Actions & User Pill -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Quick Bill Button -->
+                        <Button x:Name="BtnHeaderQuickBill" Content="➕  New Bill (F2)" Style="{StaticResource HeaderQuickButton}" Click="NavBilling_Click" Margin="0,0,16,0"/>
+
+                        <!-- Live Clock Badge -->
+                        <Border Background="#F1F5F9" CornerRadius="8" Padding="12,6" Margin="0,0,16,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🕒 " FontSize="12" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtHeaderClock" Text="Loading..." FontSize="12" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- User Profile Card -->
+                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="20" Padding="10,4,14,4">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="{StaticResource PrimaryColor}" CornerRadius="15" Width="30" Height="30" Margin="0,0,10,0">
+                                    <TextBlock x:Name="TxtUserInitial" Foreground="White" FontWeight="Bold" FontSize="14"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="TxtUserName" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <TextBlock x:Name="TxtUserRole" Text="System Admin" FontSize="10" Foreground="#10B981" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </StackPanel>
                         </Border>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <Frame x:Name="ContentFrame" Grid.Row="1" NavigationUIVisibility="Hidden" Margin="20"/>
+            <!-- Page Frame Container -->
+            <Frame x:Name="ContentFrame" Grid.Row="1" NavigationUIVisibility="Hidden" Margin="18"/>
         </Grid>
     </Grid>
 </Window>

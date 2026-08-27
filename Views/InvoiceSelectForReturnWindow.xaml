@@ -49,6 +49,30 @@
                 <DataGridTextColumn Header="Date" Binding="{Binding InvoiceDate, StringFormat='dd MMM yyyy'}" Width="110"/>
                 <DataGridTextColumn Header="Grand Total" Binding="{Binding GrandTotal, StringFormat='₹ {0:N2}'}" Width="110" FontWeight="Bold"/>
                 <DataGridTextColumn Header="Udhar Balance" Binding="{Binding PayableAmount, StringFormat='₹ {0:N2}'}" Width="110" Foreground="#C62828"/>
+                <DataGridTemplateColumn Header="Status" Width="110">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock HorizontalAlignment="Center" FontSize="11" FontWeight="SemiBold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Active"/>
+                                        <Setter Property="Foreground" Value="#2E7D32"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status}" Value="Partially Returned">
+                                                <Setter Property="Text" Value="Partial Return"/>
+                                                <Setter Property="Foreground" Value="#E65100"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="Returned">
+                                                <Setter Property="Text" Value="Returned"/>
+                                                <Setter Property="Foreground" Value="#C62828"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Action" Width="90">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

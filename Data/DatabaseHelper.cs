@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -203,68 +204,162 @@ namespace KrushiBillERP.Data
         public static (decimal Cash, decimal Online, decimal Udhar, decimal Total) GetRevenueBreakdown(DateTime start, DateTime end)
         {
             using var conn = GetConnection();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT IFNULL(SUM(CASE WHEN PaymentMethod NOT LIKE '%UPI%' AND PaymentMethod NOT LIKE '%Online%' THEN PaidAmount ELSE 0 END),0) as Cash,
-                       IFNULL(SUM(CASE WHEN PaymentMethod LIKE '%UPI%' OR PaymentMethod LIKE '%Online%' THEN PaidAmount ELSE 0 END),0) as Online,
-                       IFNULL(SUM(PayableAmount),0) as Udhar,
-                       IFNULL(SUM(GrandTotal),0) as Total
+            string sStr = start.ToString("yyyy-MM-dd HH:mm:ss");
+            string eStr = end.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // 1. Gross sales breakdown for bills created within date range
+            var invCmd = conn.CreateCommand();
+            invCmd.CommandText = @"
+                SELECT 
+                    IFNULL(SUM(CASE WHEN PaymentMethod NOT LIKE '%UPI%' AND PaymentMethod NOT LIKE '%Online%' THEN PaidAmount ELSE 0 END), 0) as CashPaid,
+                    IFNULL(SUM(CASE WHEN PaymentMethod LIKE '%UPI%' OR PaymentMethod LIKE '%Online%' THEN PaidAmount ELSE 0 END), 0) as OnlinePaid,
+                    IFNULL(SUM(PayableAmount), 0) as UdharRemaining,
+                    IFNULL(SUM(GrandTotal), 0) as TotalGross
                 FROM Invoices
-                WHERE datetime(InvoiceDate) >= $s AND datetime(InvoiceDate) <= $e AND (Status IS NULL OR Status = 'Active')";
-            cmd.Parameters.AddWithValue("$s", start.ToString("yyyy-MM-dd HH:mm:ss"));
-            cmd.Parameters.AddWithValue("$e", end.ToString("yyyy-MM-dd HH:mm:ss"));
-            using var r = cmd.ExecuteReader();
-            if (r.Read())
+                WHERE datetime(InvoiceDate) >= $s AND datetime(InvoiceDate) <= $e AND (Status IS NULL OR Status != 'Cancelled')";
+            invCmd.Parameters.AddWithValue("$s", sStr);
+            invCmd.Parameters.AddWithValue("$e", eStr);
+
+            decimal grossCash = 0m, grossOnline = 0m, grossUdhar = 0m, grossTotal = 0m;
+            using (var r = invCmd.ExecuteReader())
             {
-                var cash = r.IsDBNull(0) ? 0 : Convert.ToDecimal(r.GetDouble(0));
-                var online = r.IsDBNull(1) ? 0 : Convert.ToDecimal(r.GetDouble(1));
-                var udhar = r.IsDBNull(2) ? 0 : Convert.ToDecimal(r.GetDouble(2));
-                var total = r.IsDBNull(3) ? 0 : Convert.ToDecimal(r.GetDouble(3));
-                return (cash, online, udhar, total);
+                if (r.Read())
+                {
+                    grossCash = Convert.ToDecimal(r["CashPaid"]);
+                    grossOnline = Convert.ToDecimal(r["OnlinePaid"]);
+                    grossUdhar = Convert.ToDecimal(r["UdharRemaining"]);
+                    grossTotal = Convert.ToDecimal(r["TotalGross"]);
+                }
             }
-            return (0, 0, 0, 0);
+
+            // 2. Sales Returns occurring within date range
+            var retCmd = conn.CreateCommand();
+            retCmd.CommandText = @"
+                SELECT 
+                    IFNULL(SUM(CASE WHEN AdjustmentType LIKE '%Cash%' OR AdjustmentType LIKE '%Refund%' THEN GrandTotal ELSE 0 END), 0) as RetCash,
+                    IFNULL(SUM(CASE WHEN AdjustmentType LIKE '%UPI%' OR AdjustmentType LIKE '%Online%' THEN GrandTotal ELSE 0 END), 0) as RetOnline,
+                    IFNULL(SUM(GrandTotal), 0) as RetTotal
+                FROM SalesReturns
+                WHERE datetime(ReturnDate) >= $s AND datetime(ReturnDate) <= $e AND (Status IS NULL OR Status = 'Completed')";
+            retCmd.Parameters.AddWithValue("$s", sStr);
+            retCmd.Parameters.AddWithValue("$e", eStr);
+
+            decimal retCash = 0m, retOnline = 0m, retTotal = 0m;
+            using (var r = retCmd.ExecuteReader())
+            {
+                if (r.Read())
+                {
+                    retCash = Convert.ToDecimal(r["RetCash"]);
+                    retOnline = Convert.ToDecimal(r["RetOnline"]);
+                    retTotal = Convert.ToDecimal(r["RetTotal"]);
+                }
+            }
+
+            decimal netCash = Math.Max(0m, grossCash - retCash);
+            decimal netOnline = Math.Max(0m, grossOnline - retOnline);
+            decimal netUdhar = Math.Max(0m, grossUdhar);
+            decimal netTotal = netCash + netOnline + netUdhar;
+
+            return (netCash, netOnline, netUdhar, netTotal);
+        }
+
+        public static decimal GetTotalOutstandingUdhar()
+        {
+            using var conn = GetConnection();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT IFNULL(SUM(PayableAmount), 0) FROM Invoices WHERE (Status IS NULL OR Status != 'Cancelled') AND PayableAmount > 0";
+            return Convert.ToDecimal(cmd.ExecuteScalar());
         }
 
         public static List<(string Label, decimal Value)> GetSalesSeries(DateTime start, DateTime end, string period)
         {
             var list = new List<(string, decimal)>();
             using var conn = GetConnection();
+            var dict = new Dictionary<string, decimal>();
+
             var cmd = conn.CreateCommand();
             if (period == "today")
             {
-                // group by hour
                 cmd.CommandText = @"SELECT strftime('%H', InvoiceDate) as H, IFNULL(SUM(GrandTotal),0) as S FROM Invoices
-                    WHERE datetime(InvoiceDate) >= $s AND datetime(InvoiceDate) <= $e
+                    WHERE datetime(InvoiceDate) >= $s AND datetime(InvoiceDate) <= $e AND (Status IS NULL OR Status != 'Cancelled')
                     GROUP BY H ORDER BY H";
             }
             else if (period == "week")
             {
-                // group by weekday (0=Sun..6=Sat)
                 cmd.CommandText = @"SELECT strftime('%w', InvoiceDate) as W, IFNULL(SUM(GrandTotal),0) as S FROM Invoices
-                    WHERE date(InvoiceDate) >= date($s) AND date(InvoiceDate) <= date($e)
+                    WHERE date(InvoiceDate) >= date($s) AND date(InvoiceDate) <= date($e) AND (Status IS NULL OR Status != 'Cancelled')
                     GROUP BY W ORDER BY W";
             }
             else if (period == "month")
             {
                 cmd.CommandText = @"SELECT strftime('%d', InvoiceDate) as D, IFNULL(SUM(GrandTotal),0) as S FROM Invoices
-                    WHERE date(InvoiceDate) >= date($s) AND date(InvoiceDate) <= date($e)
+                    WHERE date(InvoiceDate) >= date($s) AND date(InvoiceDate) <= date($e) AND (Status IS NULL OR Status != 'Cancelled')
                     GROUP BY D ORDER BY D";
             }
             else // year
             {
                 cmd.CommandText = @"SELECT strftime('%m', InvoiceDate) as M, IFNULL(SUM(GrandTotal),0) as S FROM Invoices
-                    WHERE date(InvoiceDate) >= date($s) AND date(InvoiceDate) <= date($e)
+                    WHERE date(InvoiceDate) >= date($s) AND date(InvoiceDate) <= date($e) AND (Status IS NULL OR Status != 'Cancelled')
                     GROUP BY M ORDER BY M";
             }
             cmd.Parameters.AddWithValue("$s", start.ToString("yyyy-MM-dd HH:mm:ss"));
             cmd.Parameters.AddWithValue("$e", end.ToString("yyyy-MM-dd HH:mm:ss"));
-            using var r = cmd.ExecuteReader();
-            while (r.Read())
+            using (var r = cmd.ExecuteReader())
             {
-                var label = r.GetString(0);
-                var val = r.IsDBNull(1) ? 0 : Convert.ToDecimal(r.GetDouble(1));
-                list.Add((label, val));
+                while (r.Read())
+                {
+                    var label = r.GetString(0);
+                    var val = r.IsDBNull(1) ? 0 : Convert.ToDecimal(r.GetDouble(1));
+                    dict[label] = val;
+                }
             }
+
+            // Subtract Sales Returns for matching time buckets
+            var retCmd = conn.CreateCommand();
+            if (period == "today")
+            {
+                retCmd.CommandText = @"SELECT strftime('%H', ReturnDate) as H, IFNULL(SUM(GrandTotal),0) as S FROM SalesReturns
+                    WHERE datetime(ReturnDate) >= $s AND datetime(ReturnDate) <= $e AND (Status IS NULL OR Status = 'Completed')
+                    GROUP BY H";
+            }
+            else if (period == "week")
+            {
+                retCmd.CommandText = @"SELECT strftime('%w', ReturnDate) as W, IFNULL(SUM(GrandTotal),0) as S FROM SalesReturns
+                    WHERE date(ReturnDate) >= date($s) AND date(ReturnDate) <= date($e) AND (Status IS NULL OR Status = 'Completed')
+                    GROUP BY W";
+            }
+            else if (period == "month")
+            {
+                retCmd.CommandText = @"SELECT strftime('%d', ReturnDate) as D, IFNULL(SUM(GrandTotal),0) as S FROM SalesReturns
+                    WHERE date(ReturnDate) >= date($s) AND date(ReturnDate) <= date($e) AND (Status IS NULL OR Status = 'Completed')
+                    GROUP BY D";
+            }
+            else // year
+            {
+                retCmd.CommandText = @"SELECT strftime('%m', ReturnDate) as M, IFNULL(SUM(GrandTotal),0) as S FROM SalesReturns
+                    WHERE date(ReturnDate) >= date($s) AND date(ReturnDate) <= date($e) AND (Status IS NULL OR Status = 'Completed')
+                    GROUP BY M";
+            }
+            retCmd.Parameters.AddWithValue("$s", start.ToString("yyyy-MM-dd HH:mm:ss"));
+            retCmd.Parameters.AddWithValue("$e", end.ToString("yyyy-MM-dd HH:mm:ss"));
+            using (var r = retCmd.ExecuteReader())
+            {
+                while (r.Read())
+                {
+                    var label = r.GetString(0);
+                    var val = r.IsDBNull(1) ? 0 : Convert.ToDecimal(r.GetDouble(1));
+                    if (dict.ContainsKey(label))
+                    {
+                        dict[label] = Math.Max(0, dict[label] - val);
+                    }
+                }
+            }
+
+            foreach (var kvp in dict.OrderBy(k => k.Key))
+            {
+                list.Add((kvp.Key, kvp.Value));
+            }
+
             return list;
         }
 
@@ -1407,12 +1502,11 @@ namespace KrushiBillERP.Data
             var cmd = conn.CreateCommand();
             // Count total
             var whereClauses = new List<string>();
-            whereClauses.Add("p.StockQty > 0");
             if (!string.IsNullOrWhiteSpace(search)) whereClauses.Add("(p.Name LIKE $s OR p.Company LIKE $s OR p.ProductCode LIKE $s OR p.BatchNo LIKE $s OR p.HSN LIKE $s)");
             if (categoryId > 0) whereClauses.Add("p.CategoryId = $cat");
             if (!string.IsNullOrWhiteSpace(company)) whereClauses.Add("p.Company = $comp");
             if (status == 0 || status == 1) whereClauses.Add("p.Status = $st");
-            var where = string.Join(" AND ", whereClauses);
+            var where = whereClauses.Count > 0 ? string.Join(" AND ", whereClauses) : "1=1";
 
             cmd.CommandText = $"SELECT COUNT(*) FROM Products p WHERE {where}";
             if (!string.IsNullOrWhiteSpace(search)) cmd.Parameters.AddWithValue("$s", $"%{search}%");
@@ -1489,16 +1583,35 @@ namespace KrushiBillERP.Data
             var conn = existingConn ?? GetConnection();
             try
             {
+                // Update stock quantity
                 var cmd = conn.CreateCommand();
                 cmd.CommandText = "UPDATE Products SET StockQty = StockQty + $d WHERE Id = $id";
                 cmd.Parameters.AddWithValue("$d", deltaQty);
                 cmd.Parameters.AddWithValue("$id", productId);
                 cmd.ExecuteNonQuery();
+
+                // Auto-set Status: Inactive (0) if stock = 0, Active (1) if stock > 0
+                var statusCmd = conn.CreateCommand();
+                statusCmd.CommandText = @"UPDATE Products 
+                    SET Status = CASE WHEN StockQty <= 0 THEN 0 ELSE 1 END 
+                    WHERE Id = $id";
+                statusCmd.Parameters.AddWithValue("$id", productId);
+                statusCmd.ExecuteNonQuery();
             }
             finally
             {
                 if (existingConn == null) conn.Dispose();
             }
+        }
+
+        public static int GetProductCurrentStock(int productId)
+        {
+            using var conn = GetConnection();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COALESCE(StockQty, 0) FROM Products WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$id", productId);
+            var result = cmd.ExecuteScalar();
+            return result == null || result is DBNull ? 0 : Convert.ToInt32(result);
         }
 
         // ---------------- Customers ----------------
@@ -1851,6 +1964,84 @@ namespace KrushiBillERP.Data
                     Amount = r["Amount"] is DBNull ? 0 : Convert.ToDecimal(r["Amount"]),
                     BatchNumber = r["BatchNumber"]?.ToString(),
                     ExpiryDate = r["ExpiryDate"] is DBNull ? (DateTime?)null : DateTime.Parse(r["ExpiryDate"].ToString())
+                });
+            }
+            return list;
+        }
+
+        public static List<ProductSalesReturnRecord> GetProductSalesReturnHistory(int productId)
+        {
+            var list = new List<ProductSalesReturnRecord>();
+            using var conn = GetConnection();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT sr.SalesReturnId, sr.ReturnNumber, sr.ReturnDate, sr.AdjustmentType,
+                       COALESCE(NULLIF(f.FarmerName, ''), NULLIF(c.Name, ''), 'Walk-in Farmer') as CustomerName,
+                       COALESCE(NULLIF(f.MobileNumber, ''), c.Phone, '-') as CustomerPhone,
+                       inv.InvoiceNo,
+                       sri.ReturnQuantity, sri.Rate, sri.Amount
+                FROM SalesReturnItems sri
+                INNER JOIN SalesReturns sr ON sri.SalesReturnId = sr.SalesReturnId
+                LEFT JOIN Invoices inv ON sr.InvoiceId = inv.Id
+                LEFT JOIN Farmers f ON sr.FarmerId = f.FarmerId
+                LEFT JOIN Customers c ON inv.CustomerId = c.Id
+                WHERE sri.ProductId = $pid
+                ORDER BY sr.ReturnDate DESC";
+            cmd.Parameters.AddWithValue("$pid", productId);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                list.Add(new ProductSalesReturnRecord
+                {
+                    SalesReturnId = Convert.ToInt32(r["SalesReturnId"]),
+                    ReturnNumber = r["ReturnNumber"]?.ToString(),
+                    ReturnDate = DateTime.Parse(r["ReturnDate"].ToString()),
+                    CustomerName = r["CustomerName"]?.ToString(),
+                    CustomerPhone = r["CustomerPhone"]?.ToString(),
+                    InvoiceNo = r["InvoiceNo"]?.ToString(),
+                    ReturnQuantity = Convert.ToInt32(r["ReturnQuantity"]),
+                    Rate = Convert.ToDecimal(r["Rate"]),
+                    Amount = Convert.ToDecimal(r["Amount"]),
+                    AdjustmentType = r["AdjustmentType"]?.ToString() ?? "Bill Balance Adjustment"
+                });
+            }
+            return list;
+        }
+
+        public static List<ProductStockMovementRecord> GetProductStockMovementHistory(int productId)
+        {
+            var list = new List<ProductStockMovementRecord>();
+            using var conn = GetConnection();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT CreatedAt as MovementDate, 'Stock Adjustment' as MovementType,
+                       BatchNumber, DeltaQty, Reason as PartyOrReason, Notes
+                FROM StockAdjustments
+                WHERE ProductId = $pid
+
+                UNION ALL
+
+                SELECT pr.ReturnDate as MovementDate, 'Supplier Purchase Return' as MovementType,
+                       pri.BatchNumber, (-1 * pri.ReturnQuantity) as DeltaQty,
+                       COALESCE(s.Name, 'Supplier') as PartyOrReason, COALESCE(pr.ReturnReason, pr.Notes, '-') as Notes
+                FROM PurchaseReturnItems pri
+                INNER JOIN PurchaseReturns pr ON pri.PurchaseReturnId = pr.PurchaseReturnId
+                LEFT JOIN Suppliers s ON pr.SupplierId = s.Id
+                WHERE pri.ProductId = $pid
+
+                ORDER BY MovementDate DESC";
+            cmd.Parameters.AddWithValue("$pid", productId);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                list.Add(new ProductStockMovementRecord
+                {
+                    MovementDate = DateTime.Parse(r["MovementDate"].ToString()),
+                    MovementType = r["MovementType"]?.ToString() ?? "Stock Adjustment",
+                    BatchNumber = r["BatchNumber"]?.ToString() ?? "-",
+                    DeltaQty = Convert.ToInt32(r["DeltaQty"]),
+                    PartyOrReason = r["PartyOrReason"]?.ToString() ?? "-",
+                    Notes = r["Notes"]?.ToString() ?? "-"
                 });
             }
             return list;
@@ -2376,14 +2567,56 @@ namespace KrushiBillERP.Data
                     }
                 }
 
-                // Adjust Invoice / Farmer Balance if returning unpaid bill amount or Udhar Adjustment
-                if (returnHeader.InvoiceId > 0 && returnHeader.GrandTotal > 0)
+                // Update Invoice Totals (GrandTotal, SubTotal, GstAmount, PayableAmount) & Status upon Return
+                if (returnHeader.InvoiceId > 0)
                 {
-                    var adjCmd = conn.CreateCommand();
-                    adjCmd.CommandText = "UPDATE Invoices SET PayableAmount = MAX(0, PayableAmount - $ret) WHERE Id = $iid";
-                    adjCmd.Parameters.AddWithValue("$ret", returnHeader.GrandTotal);
-                    adjCmd.Parameters.AddWithValue("$iid", returnHeader.InvoiceId);
-                    adjCmd.ExecuteNonQuery();
+                    var updateInvTotalsCmd = conn.CreateCommand();
+                    updateInvTotalsCmd.CommandText = @"
+                        UPDATE Invoices 
+                        SET SubTotal = MAX(0, SubTotal - $retSub),
+                            GstAmount = MAX(0, GstAmount - $retGst),
+                            GrandTotal = MAX(0, GrandTotal - $retGrand),
+                            PayableAmount = MAX(0, PayableAmount - $retGrand)
+                        WHERE Id = $iid";
+                    updateInvTotalsCmd.Parameters.AddWithValue("$retSub", returnHeader.SubTotal);
+                    updateInvTotalsCmd.Parameters.AddWithValue("$retGst", returnHeader.GSTAmount);
+                    updateInvTotalsCmd.Parameters.AddWithValue("$retGrand", returnHeader.GrandTotal);
+                    updateInvTotalsCmd.Parameters.AddWithValue("$iid", returnHeader.InvoiceId);
+                    updateInvTotalsCmd.ExecuteNonQuery();
+
+                    // Check total purchased vs total returned quantity for this invoice to update status
+                    var checkQtyCmd = conn.CreateCommand();
+                    checkQtyCmd.CommandText = @"
+                        SELECT 
+                            IFNULL((SELECT SUM(ii.Qty) FROM InvoiceItems ii WHERE ii.InvoiceId = $iid), 0) as PurchasedQty,
+                            IFNULL((SELECT SUM(sri.ReturnQuantity) FROM SalesReturnItems sri JOIN SalesReturns sr ON sri.SalesReturnId = sr.SalesReturnId WHERE sr.InvoiceId = $iid), 0) as ReturnedQty";
+                    checkQtyCmd.Parameters.AddWithValue("$iid", returnHeader.InvoiceId);
+
+                    int purchasedQty = 0, returnedQty = 0;
+                    using (var r = checkQtyCmd.ExecuteReader())
+                    {
+                        if (r.Read())
+                        {
+                            purchasedQty = r.IsDBNull(0) ? 0 : Convert.ToInt32(r.GetValue(0));
+                            returnedQty = r.IsDBNull(1) ? 0 : Convert.ToInt32(r.GetValue(1));
+                        }
+                    }
+
+                    string newStatus = "Active";
+                    if (returnedQty >= purchasedQty && purchasedQty > 0)
+                    {
+                        newStatus = "Returned";
+                    }
+                    else if (returnedQty > 0)
+                    {
+                        newStatus = "Partially Returned";
+                    }
+
+                    var statusCmd = conn.CreateCommand();
+                    statusCmd.CommandText = "UPDATE Invoices SET Status = $st WHERE Id = $iid";
+                    statusCmd.Parameters.AddWithValue("$st", newStatus);
+                    statusCmd.Parameters.AddWithValue("$iid", returnHeader.InvoiceId);
+                    statusCmd.ExecuteNonQuery();
                 }
 
                 tx.Commit();
@@ -2568,7 +2801,7 @@ namespace KrushiBillERP.Data
             {
                 // Total initial unpaid balance (PayableAmount) across all active invoices for this farmer
                 var totalCmd = connection.CreateCommand();
-                totalCmd.CommandText = "SELECT IFNULL(SUM(PayableAmount), 0) FROM Invoices WHERE FarmerId=$fid AND (Status IS NULL OR Status='Active')";
+                totalCmd.CommandText = "SELECT IFNULL(SUM(PayableAmount), 0) FROM Invoices WHERE FarmerId=$fid AND (Status IS NULL OR Status='Active' OR Status='Partially Returned' OR Status='Returned')";
                 totalCmd.Parameters.AddWithValue("$fid", farmerId);
                 decimal totalPayable = Convert.ToDecimal(totalCmd.ExecuteScalar());
 
@@ -2577,7 +2810,7 @@ namespace KrushiBillERP.Data
                 paidCmd.CommandText = @"SELECT IFNULL(SUM(pra.AllocatedAmount), 0)
                     FROM PaymentReceiptAllocations pra
                     INNER JOIN Invoices i ON pra.InvoiceId = i.Id
-                    WHERE i.FarmerId=$fid AND (i.Status IS NULL OR i.Status='Active')";
+                    WHERE i.FarmerId=$fid AND (i.Status IS NULL OR i.Status='Active' OR i.Status='Partially Returned' OR i.Status='Returned')";
                 paidCmd.Parameters.AddWithValue("$fid", farmerId);
                 decimal totalReceiptPaid = Convert.ToDecimal(paidCmd.ExecuteScalar());
 
@@ -2602,7 +2835,7 @@ namespace KrushiBillERP.Data
                 cmd.CommandText = @"SELECT i.Id, i.InvoiceNo, i.InvoiceDate, i.GrandTotal, i.PayableAmount,
                     IFNULL((SELECT SUM(pra.AllocatedAmount) FROM PaymentReceiptAllocations pra WHERE pra.InvoiceId = i.Id), 0) as TotalReceiptPaid
                     FROM Invoices i
-                    WHERE i.FarmerId=$fid AND (i.Status IS NULL OR i.Status='Active') AND i.PayableAmount > 0
+                    WHERE i.FarmerId=$fid AND (i.Status IS NULL OR i.Status='Active' OR i.Status='Partially Returned') AND i.PayableAmount > 0
                     ORDER BY i.InvoiceDate ASC, i.Id ASC";
                 cmd.Parameters.AddWithValue("$fid", farmerId);
 
@@ -2716,7 +2949,7 @@ namespace KrushiBillERP.Data
                 cmd.Parameters.AddWithValue("$ca", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 int receiptId = Convert.ToInt32((long)cmd.ExecuteScalar());
 
-                // 7. Insert allocations
+                // 7. Insert allocations and update Invoice Paid & Payable amounts
                 foreach (var alloc in allocations)
                 {
                     var acmd = conn.CreateCommand();
@@ -2727,6 +2960,15 @@ namespace KrushiBillERP.Data
                     acmd.Parameters.AddWithValue("$aa", alloc.AllocatedAmount);
                     acmd.Parameters.AddWithValue("$ca", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     acmd.ExecuteNonQuery();
+
+                    var updateInvCmd = conn.CreateCommand();
+                    updateInvCmd.CommandText = @"UPDATE Invoices 
+                        SET PaidAmount = PaidAmount + $aa, 
+                            PayableAmount = MAX(0, PayableAmount - $aa) 
+                        WHERE Id = $iid";
+                    updateInvCmd.Parameters.AddWithValue("$aa", alloc.AllocatedAmount);
+                    updateInvCmd.Parameters.AddWithValue("$iid", alloc.InvoiceId);
+                    updateInvCmd.ExecuteNonQuery();
                 }
 
                 tx.Commit();
@@ -3132,7 +3374,10 @@ namespace KrushiBillERP.Data
             // Paged Items
             var offset = (Math.Max(page, 1) - 1) * Math.Max(pageSize, 1);
             var dataCmd = conn.CreateCommand();
-            dataCmd.CommandText = $@"SELECT i.*, c.Name as CustomerName, f.FarmerName as FarmerName, f.MobileNumber as FarmerMobile, f.VillageName as FarmerVillage
+            dataCmd.CommandText = $@"SELECT i.*, 
+                IFNULL((SELECT SUM(ii.Qty) FROM InvoiceItems ii WHERE ii.InvoiceId = i.Id), 0) as TotalQty,
+                IFNULL((SELECT SUM(sr.GrandTotal) FROM SalesReturns sr WHERE sr.InvoiceId = i.Id AND (sr.Status IS NULL OR sr.Status = 'Completed')), 0) as TotalReturnedAmount,
+                c.Name as CustomerName, f.FarmerName as FarmerName, f.MobileNumber as FarmerMobile, f.VillageName as FarmerVillage
                 FROM Invoices i
                 LEFT JOIN Customers c ON i.CustomerId = c.Id
                 LEFT JOIN Farmers f ON i.FarmerId = f.FarmerId
@@ -3167,7 +3412,11 @@ namespace KrushiBillERP.Data
                     SubTotal = Convert.ToDecimal(r["SubTotal"]),
                     GstAmount = Convert.ToDecimal(r["GstAmount"]),
                     GrandTotal = Convert.ToDecimal(r["GrandTotal"]),
-                    PaymentMethod = r["PaymentMethod"]?.ToString() ?? "Cash"
+                    PaymentMethod = r["PaymentMethod"]?.ToString() ?? "Cash",
+                    PaidAmount = r["PaidAmount"] is DBNull ? 0m : Convert.ToDecimal(r["PaidAmount"]),
+                    PayableAmount = r["PayableAmount"] is DBNull ? 0m : Convert.ToDecimal(r["PayableAmount"]),
+                    Status = r["Status"]?.ToString() ?? "Active",
+                    TotalQty = r["TotalQty"] is DBNull ? 0 : Convert.ToInt32(r["TotalQty"])
                 });
             }
 

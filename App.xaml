@@ -10,9 +10,12 @@
             <SolidColorBrush x:Key="PrimaryColor">#2E7D32</SolidColorBrush>
             <SolidColorBrush x:Key="PrimaryDark">#1B5E20</SolidColorBrush>
             <SolidColorBrush x:Key="AccentColor">#F9A825</SolidColorBrush>
-            <SolidColorBrush x:Key="LightBg">#F4F6F5</SolidColorBrush>
-            <SolidColorBrush x:Key="SidebarBg">#1B3B2E</SolidColorBrush>
-            <SolidColorBrush x:Key="TextDark">#212121</SolidColorBrush>
+            <SolidColorBrush x:Key="LightBg">#F8FAFC</SolidColorBrush>
+            <SolidColorBrush x:Key="SidebarBg">#0F291E</SolidColorBrush>
+            <SolidColorBrush x:Key="SidebarActiveBg">#1E4D3B</SolidColorBrush>
+            <SolidColorBrush x:Key="SidebarActiveText">#FFFFFF</SolidColorBrush>
+            <SolidColorBrush x:Key="SidebarInactiveText">#94A3B8</SolidColorBrush>
+            <SolidColorBrush x:Key="TextDark">#1E293B</SolidColorBrush>
 			<Style x:Key="PrimaryButton" TargetType="Button">
 				<Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
 				<Setter Property="Foreground" Value="White"/>
@@ -40,6 +43,34 @@
 					</Setter.Value>
 				</Setter>
 			</Style>
+            <!-- Header Quick Pill Button -->
+            <Style x:Key="HeaderQuickButton" TargetType="Button">
+                <Setter Property="Background" Value="#2E7D32"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="12.5"/>
+                <Setter Property="Padding" Value="14,8"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="20" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="#1B5E20"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="#144A18"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <!-- Refresh button: icon + text, pill shaped (moved from DashboardHomeView to global resources) -->
             <Style x:Key="RefreshButton" TargetType="Button">
                 <Setter Property="Background" Value="#EAF7EC"/>
@@ -102,27 +133,30 @@
             </Style>
 			<Style x:Key="SideNavButton" TargetType="Button">
 				<Setter Property="Background" Value="Transparent"/>
-				<Setter Property="Foreground" Value="#CFE0D4"/>
-				<Setter Property="FontSize" Value="13.5"/>
+				<Setter Property="Foreground" Value="#94A3B8"/>
+				<Setter Property="FontSize" Value="13"/>
 				<Setter Property="HorizontalContentAlignment" Value="Left"/>
-				<Setter Property="Padding" Value="18,11"/>
+				<Setter Property="Padding" Value="14,9"/>
 				<Setter Property="BorderThickness" Value="0"/>
 				<Setter Property="Cursor" Value="Hand"/>
 				<Setter Property="Template">
 					<Setter.Value>
 						<ControlTemplate TargetType="Button">
 							<Border x:Name="bd" Background="{TemplateBinding Background}"
-									CornerRadius="6" Margin="10,2">
-								<ContentPresenter Margin="{TemplateBinding Padding}"
-												  HorizontalAlignment="Left" VerticalAlignment="Center"/>
+									CornerRadius="8" Margin="10,2">
+								<Grid>
+									<Border x:Name="ActivePill" Width="4" HorizontalAlignment="Left" CornerRadius="2,0,0,2" Background="#10B981" Visibility="Collapsed" Margin="-10,0,0,0"/>
+									<ContentPresenter Margin="{TemplateBinding Padding}"
+													  HorizontalAlignment="Left" VerticalAlignment="Center"/>
+								</Grid>
 							</Border>
 							<ControlTemplate.Triggers>
 								<Trigger Property="IsMouseOver" Value="True">
-									<Setter TargetName="bd" Property="Background" Value="#2E5B47"/>
+									<Setter TargetName="bd" Property="Background" Value="#173B2C"/>
 									<Setter Property="Foreground" Value="White"/>
 								</Trigger>
 								<Trigger Property="IsPressed" Value="True">
-									<Setter TargetName="bd" Property="Background" Value="#254A3A"/>
+									<Setter TargetName="bd" Property="Background" Value="#143427"/>
 								</Trigger>
 							</ControlTemplate.Triggers>
 						</ControlTemplate>
