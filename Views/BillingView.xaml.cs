@@ -457,8 +457,22 @@ namespace KrushiBillERP.Views
             TxtSelectedFarmerMobile.Text = string.IsNullOrEmpty(f.MobileNumber) ? "-" : f.MobileNumber;
             TxtSelectedFarmerVillage.Text = string.IsNullOrEmpty(f.VillageName) ? "-" : f.VillageName;
 
-            decimal outstanding = DatabaseHelper.GetFarmerOutstandingBalance(f.FarmerId);
-            TxtSelectedFarmerOutstanding.Text = $"₹ {outstanding:N2}";
+            var (balAmt, balType) = DatabaseHelper.GetFarmerAccountLedgerBalance(f.FarmerId);
+            if (balType == "Jama")
+            {
+                TxtSelectedFarmerOutstanding.Text = $"₹ {balAmt:N2} Jama (Adv)";
+                TxtSelectedFarmerOutstanding.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#16A34A"));
+            }
+            else if (balType == "Udhar")
+            {
+                TxtSelectedFarmerOutstanding.Text = $"₹ {balAmt:N2} Udhar";
+                TxtSelectedFarmerOutstanding.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#DC2626"));
+            }
+            else
+            {
+                TxtSelectedFarmerOutstanding.Text = "₹ 0.00 (Clear)";
+                TxtSelectedFarmerOutstanding.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#64748B"));
+            }
 
             PanelSelectedFarmer.Visibility = Visibility.Visible;
 

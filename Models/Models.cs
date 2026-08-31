@@ -297,6 +297,10 @@ namespace KrushiBillERP.Models
         public string FarmerName { get; set; }
         public string MobileNumber { get; set; }
         public string VillageName { get; set; }
+        public decimal OpeningBalance { get; set; } = 0m;
+        public string OpeningBalanceType { get; set; } = "Udhar"; // "Udhar" or "Jama"
+        public decimal CurrentBalance { get; set; } = 0m;
+        public string CurrentBalanceType { get; set; } = "Clear"; // "Udhar", "Jama", or "Clear"
         // 1 = Active, 0 = Inactive
         public int Status { get; set; } = 1;
         public DateTime CreatedDate { get; set; }
@@ -304,6 +308,7 @@ namespace KrushiBillERP.Models
 
         // Helper
         public string StatusText => Status == 1 ? "Active" : "Inactive";
+        public string CurrentBalanceDisplay => CurrentBalance <= 0 || CurrentBalanceType == "Clear" ? "₹ 0.00" : (CurrentBalanceType == "Jama" ? $"₹ {CurrentBalance:N2} Jama (Adv)" : $"₹ {CurrentBalance:N2} Udhar");
     }
 
     public class PaymentReceipt

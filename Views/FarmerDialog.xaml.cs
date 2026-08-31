@@ -25,7 +25,12 @@ namespace KrushiBillERP.Views
             TxtName.Text = _farmer.FarmerName;
             TxtMobile.Text = _farmer.MobileNumber;
             TxtVillage.Text = _farmer.VillageName;
-          
+            TxtOpeningBalance.Text = _farmer.OpeningBalance.ToString("0.00");
+            
+            if (string.Equals(_farmer.OpeningBalanceType, "Jama", StringComparison.OrdinalIgnoreCase))
+                CmbOpeningBalanceType.SelectedIndex = 1;
+            else
+                CmbOpeningBalanceType.SelectedIndex = 0;
         }
 
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
@@ -41,10 +46,12 @@ namespace KrushiBillERP.Views
                 var name = TxtName.Text?.Trim();
                 var mobile = TxtMobile.Text?.Trim();
                 var village = TxtVillage.Text?.Trim();
-               
+                decimal.TryParse((TxtOpeningBalance.Text ?? "").Trim(), out decimal openingBal);
+
+                var selItem = CmbOpeningBalanceType.SelectedItem as ComboBoxItem;
+                string balType = selItem?.Tag?.ToString() ?? "Udhar";
 
                 if (string.IsNullOrWhiteSpace(name) || name.Length < 2) throw new Exception("Farmer name is required and must be at least 2 characters.");
-                // Do not allow name that is only numbers
                 if (name.All(char.IsDigit)) throw new Exception("Farmer name cannot be numbers only.");
 
                 if (string.IsNullOrWhiteSpace(mobile)) throw new Exception("Mobile number is required.");
@@ -52,8 +59,8 @@ namespace KrushiBillERP.Views
                 if (!"6789".Contains(mobile[0])) throw new Exception("Mobile must start with 6,7,8 or 9.");
 
                 if (string.IsNullOrWhiteSpace(village) || village.Length < 2) throw new Exception("Village name is required and must be at least 2 characters.");
+                if (openingBal < 0) throw new Exception("Opening balance amount cannot be negative.");
 
-                // Duplicate mobile check
                 if (DatabaseHelper.IsFarmerMobileExists(mobile, _farmer.FarmerId))
                 {
                     MessageBox.Show("A farmer with this mobile number already exists.", "Duplicate", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -63,8 +70,8 @@ namespace KrushiBillERP.Views
                 _farmer.FarmerName = name;
                 _farmer.MobileNumber = mobile;
                 _farmer.VillageName = village;
-               
-                // If Farmer class later adds Notes, you can store notes; for now ignore or extend model
+                _farmer.OpeningBalance = openingBal;
+                _farmer.OpeningBalanceType = balType;
                 _farmer.UpdatedDate = DateTime.Now;
 
                 if (_farmer.FarmerId == 0) _farmer.CreatedDate = DateTime.Now;

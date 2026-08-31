@@ -347,9 +347,45 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Mobile Number" Binding="{Binding MobileNumber}" Width="160" ElementStyle="{StaticResource CellTextBlockCenter}" />
-                    <DataGridTextColumn Header="Village" Binding="{Binding VillageName}" Width="160" ElementStyle="{StaticResource CellTextBlockCenter}" />
-                    <DataGridTemplateColumn Header="Status" Width="120">
+                    <DataGridTextColumn Header="Mobile Number" Binding="{Binding MobileNumber}" Width="150" ElementStyle="{StaticResource CellTextBlockCenter}" />
+                    <DataGridTextColumn Header="Village" Binding="{Binding VillageName}" Width="150" ElementStyle="{StaticResource CellTextBlockCenter}" />
+                    <DataGridTemplateColumn Header="Account Balance" Width="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="12" Padding="10,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#F1F5F9"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding CurrentBalanceType}" Value="Udhar">
+                                                    <Setter Property="Background" Value="#FEE2E2"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding CurrentBalanceType}" Value="Jama">
+                                                    <Setter Property="Background" Value="#DCFCE7"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding CurrentBalanceDisplay}" FontWeight="Bold" FontSize="12">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#64748B"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CurrentBalanceType}" Value="Udhar">
+                                                        <Setter Property="Foreground" Value="#DC2626"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding CurrentBalanceType}" Value="Jama">
+                                                        <Setter Property="Foreground" Value="#16A34A"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Status" Width="110">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">

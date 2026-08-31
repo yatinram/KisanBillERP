@@ -75,6 +75,7 @@ namespace KrushiBillERP.Views
                 TxtMinStock.Text = _product.ReorderLevel.ToString();
                 TxtPackSize.Text = _product.PackSize.ToString();
                 TxtHsn.Text = _product.HSN;
+                TxtUnit.Text = string.IsNullOrWhiteSpace(_product.Unit) ? "Unit" : _product.Unit;
 
                 TxtPurchaseStockQty.Text = _product.StockQty.ToString();
                 TxtPurchaseStockQty.IsReadOnly = true;
@@ -90,23 +91,14 @@ namespace KrushiBillERP.Views
 
                 TxtPackSize.Text = "1";
                 TxtMinStock.Text = "5";
-                if (CmbUnit.Items.Count > 0) CmbUnit.SelectedIndex = 3; // KG / Piece default
+                TxtUnit.Text = "Unit";
 
                 // Load Purchase Items from Database
                 LoadPurchaseItems();
             }
 
-            if (!string.IsNullOrWhiteSpace(_product.Unit))
-            {
-                foreach (var it in CmbUnit.Items)
-                {
-                    if ((it as ComboBoxItem)?.Content?.ToString() == _product.Unit)
-                    {
-                        CmbUnit.SelectedItem = it;
-                        break;
-                    }
-                }
-            }
+            TxtUnit.IsReadOnly = true;
+            TxtUnit.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F3F4F6"));
 
             if (_product.CategoryId > 0)
             {
@@ -168,6 +160,8 @@ namespace KrushiBillERP.Views
                 int totalStockQty = item.Quantity + item.FreeQuantity;
                 TxtPurchaseStockQty.Text = totalStockQty.ToString();
                 TxtHsn.Text = string.IsNullOrEmpty(item.HSN) ? "" : item.HSN;
+                TxtUnit.Text = string.IsNullOrWhiteSpace(item.Unit) ? "Unit" : item.Unit;
+                if (item.PackSize > 0) TxtPackSize.Text = item.PackSize.ToString();
 
                 // Match and select Category if available from Purchase Entry
                 if (!string.IsNullOrWhiteSpace(item.CategoryName))
@@ -205,6 +199,9 @@ namespace KrushiBillERP.Views
 
                 TxtHsn.IsReadOnly = true;
                 TxtHsn.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F3F4F6"));
+
+                TxtUnit.IsReadOnly = true;
+                TxtUnit.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F3F4F6"));
 
                 // Focus on Selling Price for fast data entry
                 TxtSellingPrice.Focus();
@@ -248,7 +245,7 @@ namespace KrushiBillERP.Views
                 _product.PackSize = pack;
                 _product.BatchNo = TxtBatch.Text.Trim();
                 _product.ExpiryDate = DpExpiry.SelectedDate;
-                _product.Unit = (CmbUnit.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Unit";
+                _product.Unit = string.IsNullOrWhiteSpace(TxtUnit.Text) ? "Unit" : TxtUnit.Text.Trim();
                 _product.PurchasePrice = pp;
                 _product.SalePrice = sp;
                 _product.GstPercent = gst;

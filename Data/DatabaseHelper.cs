@@ -72,16 +72,7 @@ namespace KrushiBillERP.Data
             using var r = dataCmd.ExecuteReader();
             while (r.Read())
             {
-                list.Add(new Models.Farmer
-                {
-                    FarmerId = r.GetInt32(r.GetOrdinal("FarmerId")),
-                    FarmerName = r["FarmerName"]?.ToString(),
-                    MobileNumber = r["MobileNumber"]?.ToString(),
-                    VillageName = r["VillageName"]?.ToString(),
-                    Status = r["Status"] is DBNull ? 1 : Convert.ToInt32(r["Status"]),
-                    CreatedDate = string.IsNullOrWhiteSpace(r["CreatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["CreatedDate"].ToString()),
-                    UpdatedDate = string.IsNullOrWhiteSpace(r["UpdatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["UpdatedDate"].ToString())
-                });
+                list.Add(ReadFarmerRecord(r, conn));
             }
             return (list, total);
         }
@@ -95,16 +86,7 @@ namespace KrushiBillERP.Data
             using var r = cmd.ExecuteReader();
             while (r.Read())
             {
-                list.Add(new Models.Farmer
-                {
-                    FarmerId = r.GetInt32(r.GetOrdinal("FarmerId")),
-                    FarmerName = r["FarmerName"]?.ToString(),
-                    MobileNumber = r["MobileNumber"]?.ToString(),
-                    VillageName = r["VillageName"]?.ToString(),
-                    Status = r["Status"] is DBNull ? 1 : Convert.ToInt32(r["Status"]),
-                    CreatedDate = string.IsNullOrWhiteSpace(r["CreatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["CreatedDate"].ToString()),
-                    UpdatedDate = string.IsNullOrWhiteSpace(r["UpdatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["UpdatedDate"].ToString())
-                });
+                list.Add(ReadFarmerRecord(r, conn));
             }
             return list;
         }
@@ -118,18 +100,29 @@ namespace KrushiBillERP.Data
             using var r = cmd.ExecuteReader();
             if (r.Read())
             {
-                return new Models.Farmer
-                {
-                    FarmerId = r.GetInt32(r.GetOrdinal("FarmerId")),
-                    FarmerName = r["FarmerName"]?.ToString(),
-                    MobileNumber = r["MobileNumber"]?.ToString(),
-                    VillageName = r["VillageName"]?.ToString(),
-                    Status = r["Status"] is DBNull ? 1 : Convert.ToInt32(r["Status"]),
-                    CreatedDate = string.IsNullOrWhiteSpace(r["CreatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["CreatedDate"].ToString()),
-                    UpdatedDate = string.IsNullOrWhiteSpace(r["UpdatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["UpdatedDate"].ToString())
-                };
+                return ReadFarmerRecord(r, conn);
             }
             return null;
+        }
+
+        private static Models.Farmer ReadFarmerRecord(SqliteDataReader r, SqliteConnection conn = null)
+        {
+            var f = new Models.Farmer
+            {
+                FarmerId = r.GetInt32(r.GetOrdinal("FarmerId")),
+                FarmerName = r["FarmerName"]?.ToString(),
+                MobileNumber = r["MobileNumber"]?.ToString(),
+                VillageName = r["VillageName"]?.ToString(),
+                OpeningBalance = r["OpeningBalance"] is DBNull ? 0m : Convert.ToDecimal(r["OpeningBalance"]),
+                OpeningBalanceType = r["OpeningBalanceType"] is DBNull || string.IsNullOrWhiteSpace(r["OpeningBalanceType"]?.ToString()) ? "Udhar" : r["OpeningBalanceType"].ToString(),
+                Status = r["Status"] is DBNull ? 1 : Convert.ToInt32(r["Status"]),
+                CreatedDate = string.IsNullOrWhiteSpace(r["CreatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["CreatedDate"].ToString()),
+                UpdatedDate = string.IsNullOrWhiteSpace(r["UpdatedDate"]?.ToString()) ? DateTime.MinValue : DateTime.Parse(r["UpdatedDate"].ToString())
+            };
+            var (balAmt, balType) = GetFarmerAccountLedgerBalance(f.FarmerId, conn);
+            f.CurrentBalance = balAmt;
+            f.CurrentBalanceType = balType;
+            return f;
         }
 
         public static bool IsFarmerMobileExists(string mobile, int excludeFarmerId = 0)
@@ -150,17 +143,19 @@ namespace KrushiBillERP.Data
             var cmd = conn.CreateCommand();
             if (f.FarmerId == 0)
             {
-                cmd.CommandText = "INSERT INTO Farmers (FarmerName, MobileNumber, VillageName, Status, CreatedDate, UpdatedDate) VALUES ($n,$m,$v,$st,$cd,$ud)";
+                cmd.CommandText = "INSERT INTO Farmers (FarmerName, MobileNumber, VillageName, OpeningBalance, OpeningBalanceType, Status, CreatedDate, UpdatedDate) VALUES ($n,$m,$v,$ob,$obt,$st,$cd,$ud)";
                 cmd.Parameters.AddWithValue("$cd", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             }
             else
             {
-                cmd.CommandText = "UPDATE Farmers SET FarmerName=$n, MobileNumber=$m, VillageName=$v, Status=$st, UpdatedDate=$ud WHERE FarmerId=$id";
+                cmd.CommandText = "UPDATE Farmers SET FarmerName=$n, MobileNumber=$m, VillageName=$v, OpeningBalance=$ob, OpeningBalanceType=$obt, Status=$st, UpdatedDate=$ud WHERE FarmerId=$id";
                 cmd.Parameters.AddWithValue("$id", f.FarmerId);
             }
             cmd.Parameters.AddWithValue("$n", f.FarmerName ?? "");
             cmd.Parameters.AddWithValue("$m", f.MobileNumber ?? "");
             cmd.Parameters.AddWithValue("$v", f.VillageName ?? "");
+            cmd.Parameters.AddWithValue("$ob", f.OpeningBalance);
+            cmd.Parameters.AddWithValue("$obt", string.IsNullOrWhiteSpace(f.OpeningBalanceType) ? "Udhar" : f.OpeningBalanceType);
             cmd.Parameters.AddWithValue("$st", f.Status);
             cmd.Parameters.AddWithValue("$ud", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             cmd.ExecuteNonQuery();
@@ -507,8 +502,8 @@ namespace KrushiBillERP.Data
 
                     // Insert PurchaseItem
                     var icmd = conn.CreateCommand();
-                    icmd.CommandText = @"INSERT INTO PurchaseItems (PurchaseId, ProductId, ProductName, Company, BatchNumber, ExpiryDate, Quantity, FreeQuantity, PurchasePrice, GST, Amount, HSN, CategoryName)
-                        VALUES ($pid,$prid,$pn,$co,$bn,$ed,$q,$fq,$pp,$gst,$a,$hsn,$cat);";
+                    icmd.CommandText = @"INSERT INTO PurchaseItems (PurchaseId, ProductId, ProductName, Company, BatchNumber, ExpiryDate, Quantity, FreeQuantity, PurchasePrice, GST, Amount, HSN, CategoryName, Unit, PackSize)
+                        VALUES ($pid,$prid,$pn,$co,$bn,$ed,$q,$fq,$pp,$gst,$a,$hsn,$cat,$unit,$pack);";
                     icmd.Parameters.AddWithValue("$pid", purchaseId);
                     icmd.Parameters.AddWithValue("$prid", productId > 0 ? (object)productId : DBNull.Value);
                     icmd.Parameters.AddWithValue("$pn", item.ProductName?.Trim() ?? "");
@@ -522,6 +517,8 @@ namespace KrushiBillERP.Data
                     icmd.Parameters.AddWithValue("$a", item.Amount);
                     icmd.Parameters.AddWithValue("$hsn", item.HSN?.Trim() ?? "");
                     icmd.Parameters.AddWithValue("$cat", item.CategoryName?.Trim() ?? "");
+                    icmd.Parameters.AddWithValue("$unit", item.Unit?.Trim() ?? "");
+                    icmd.Parameters.AddWithValue("$pack", item.PackSize);
                     icmd.ExecuteNonQuery();
 
                     // update product stock ONLY if product is linked to catalog (Quantity + FreeQuantity)
@@ -747,7 +744,11 @@ namespace KrushiBillERP.Data
                     FreeQuantity = r["FreeQuantity"] is DBNull ? 0 : Convert.ToInt32(r["FreeQuantity"]),
                     PurchasePrice = r["PurchasePrice"] is DBNull ? 0 : Convert.ToDecimal(r["PurchasePrice"]),
                     GST = r["GST"] is DBNull ? 0 : Convert.ToDecimal(r["GST"]),
-                    Amount = r["Amount"] is DBNull ? 0 : Convert.ToDecimal(r["Amount"])
+                    Amount = r["Amount"] is DBNull ? 0 : Convert.ToDecimal(r["Amount"]),
+                    HSN = r["HSN"] is DBNull ? "" : r["HSN"].ToString(),
+                    CategoryName = r["CategoryName"] is DBNull ? "" : r["CategoryName"].ToString(),
+                    Unit = r["Unit"] is DBNull ? "" : r["Unit"].ToString(),
+                    PackSize = r["PackSize"] is DBNull ? 1m : Convert.ToDecimal(r["PackSize"])
                 });
             }
             return list;
@@ -1180,6 +1181,19 @@ namespace KrushiBillERP.Data
             }
             if (!existingPiCols.Contains("HSN")) { var a = conn.CreateCommand(); a.CommandText = "ALTER TABLE PurchaseItems ADD COLUMN HSN TEXT;"; a.ExecuteNonQuery(); }
             if (!existingPiCols.Contains("CategoryName")) { var a = conn.CreateCommand(); a.CommandText = "ALTER TABLE PurchaseItems ADD COLUMN CategoryName TEXT;"; a.ExecuteNonQuery(); }
+            if (!existingPiCols.Contains("Unit")) { var a = conn.CreateCommand(); a.CommandText = "ALTER TABLE PurchaseItems ADD COLUMN Unit TEXT;"; a.ExecuteNonQuery(); }
+            if (!existingPiCols.Contains("PackSize")) { var a = conn.CreateCommand(); a.CommandText = "ALTER TABLE PurchaseItems ADD COLUMN PackSize REAL DEFAULT 1;"; a.ExecuteNonQuery(); }
+
+            // Ensure Farmers table has OpeningBalance and OpeningBalanceType columns
+            var fInfoCmd = conn.CreateCommand();
+            fInfoCmd.CommandText = "PRAGMA table_info(Farmers);";
+            var existingFCols = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (var rc = fInfoCmd.ExecuteReader())
+            {
+                while (rc.Read()) existingFCols.Add(rc.GetString(rc.GetOrdinal("name")));
+            }
+            if (!existingFCols.Contains("OpeningBalance")) { var a = conn.CreateCommand(); a.CommandText = "ALTER TABLE Farmers ADD COLUMN OpeningBalance REAL DEFAULT 0;"; a.ExecuteNonQuery(); }
+            if (!existingFCols.Contains("OpeningBalanceType")) { var a = conn.CreateCommand(); a.CommandText = "ALTER TABLE Farmers ADD COLUMN OpeningBalanceType TEXT DEFAULT 'Udhar';"; a.ExecuteNonQuery(); }
 
             if (isNew)
             {
@@ -2794,32 +2808,67 @@ namespace KrushiBillERP.Data
         /// Outstanding = SUM(GrandTotal of Udhar invoices for matching customers) 
         ///             - SUM(AllocatedAmount from PaymentReceiptAllocations for those invoices)
         /// </summary>
-        public static decimal GetFarmerOutstandingBalance(int farmerId, SqliteConnection conn = null)
+        public static (decimal BalanceAmount, string BalanceType) GetFarmerAccountLedgerBalance(int farmerId, SqliteConnection conn = null)
         {
             var connection = conn ?? GetConnection();
             try
             {
-                // Total initial unpaid balance (PayableAmount) across all active invoices for this farmer
+                // 1. Get farmer initial opening balance and balance type
+                decimal initOpening = 0m;
+                string initType = "Udhar";
+                var fcmd = connection.CreateCommand();
+                fcmd.CommandText = "SELECT OpeningBalance, OpeningBalanceType FROM Farmers WHERE FarmerId=$fid";
+                fcmd.Parameters.AddWithValue("$fid", farmerId);
+                using (var fr = fcmd.ExecuteReader())
+                {
+                    if (fr.Read())
+                    {
+                        initOpening = fr["OpeningBalance"] is DBNull ? 0m : Convert.ToDecimal(fr["OpeningBalance"]);
+                        initType = fr["OpeningBalanceType"]?.ToString() ?? "Udhar";
+                    }
+                }
+
+                decimal initialUdhar = string.Equals(initType, "Jama", StringComparison.OrdinalIgnoreCase) ? 0m : initOpening;
+                decimal initialJama = string.Equals(initType, "Jama", StringComparison.OrdinalIgnoreCase) ? initOpening : 0m;
+
+                // 2. Invoices Payable Total (Debits)
                 var totalCmd = connection.CreateCommand();
-                totalCmd.CommandText = "SELECT IFNULL(SUM(PayableAmount), 0) FROM Invoices WHERE FarmerId=$fid AND (Status IS NULL OR Status='Active' OR Status='Partially Returned' OR Status='Returned')";
+                totalCmd.CommandText = "SELECT IFNULL(SUM(PayableAmount), 0) FROM Invoices WHERE FarmerId=$fid AND (Status IS NULL OR Status != 'Cancelled')";
                 totalCmd.Parameters.AddWithValue("$fid", farmerId);
-                decimal totalPayable = Convert.ToDecimal(totalCmd.ExecuteScalar());
+                decimal totalInvoicesPayable = Convert.ToDecimal(totalCmd.ExecuteScalar());
 
-                // Total allocated payments via Payment Receipts (Jama Pavti)
+                // 3. Total Received Payments via Payment Receipts (Credits)
                 var paidCmd = connection.CreateCommand();
-                paidCmd.CommandText = @"SELECT IFNULL(SUM(pra.AllocatedAmount), 0)
-                    FROM PaymentReceiptAllocations pra
-                    INNER JOIN Invoices i ON pra.InvoiceId = i.Id
-                    WHERE i.FarmerId=$fid AND (i.Status IS NULL OR i.Status='Active' OR i.Status='Partially Returned' OR i.Status='Returned')";
+                paidCmd.CommandText = "SELECT IFNULL(SUM(ReceivedAmount), 0) FROM PaymentReceipts WHERE FarmerId=$fid";
                 paidCmd.Parameters.AddWithValue("$fid", farmerId);
-                decimal totalReceiptPaid = Convert.ToDecimal(paidCmd.ExecuteScalar());
+                decimal totalPaymentsReceived = Convert.ToDecimal(paidCmd.ExecuteScalar());
 
-                return Math.Max(0m, totalPayable - totalReceiptPaid);
+                decimal totalDebits = initialUdhar + totalInvoicesPayable;
+                decimal totalCredits = initialJama + totalPaymentsReceived;
+
+                if (totalDebits > totalCredits)
+                {
+                    return (totalDebits - totalCredits, "Udhar");
+                }
+                else if (totalCredits > totalDebits)
+                {
+                    return (totalCredits - totalDebits, "Jama");
+                }
+                else
+                {
+                    return (0m, "Clear");
+                }
             }
             finally
             {
                 if (conn == null) connection.Dispose();
             }
+        }
+
+        public static decimal GetFarmerOutstandingBalance(int farmerId, SqliteConnection conn = null)
+        {
+            var (amt, type) = GetFarmerAccountLedgerBalance(farmerId, conn);
+            return type == "Udhar" ? amt : 0m;
         }
 
         /// <summary>
@@ -2885,26 +2934,25 @@ namespace KrushiBillERP.Data
                     throw new Exception("Selected customer/farmer not found.");
 
                 // 2. Recalculate live outstanding balance
-                decimal liveBalance = GetFarmerOutstandingBalance(receipt.FarmerId, conn);
-                receipt.OpeningBalance = liveBalance;
+                var (liveBalance, liveType) = GetFarmerAccountLedgerBalance(receipt.FarmerId, conn);
+                receipt.OpeningBalance = liveType == "Udhar" ? liveBalance : -liveBalance;
 
                 if (receipt.ReceivedAmount <= 0)
                     throw new Exception("Received amount must be greater than zero.");
 
-                if (receipt.ReceivedAmount > liveBalance)
-                    throw new Exception($"Received amount (₹{receipt.ReceivedAmount:N2}) cannot exceed the current outstanding balance (₹{liveBalance:N2}).");
-
-                // 3. Validate total allocation == received amount
+                // 3. Validate allocation does not exceed received amount
                 decimal totalAllocated = 0m;
                 foreach (var a in allocations)
                     totalAllocated += a.AllocatedAmount;
 
-                if (Math.Abs(totalAllocated - receipt.ReceivedAmount) > 0.01m)
-                    throw new Exception($"Payment allocation (₹{totalAllocated:N2}) must equal the received amount (₹{receipt.ReceivedAmount:N2}).");
+                if (totalAllocated > receipt.ReceivedAmount + 0.01m)
+                    throw new Exception($"Payment allocation (₹{totalAllocated:N2}) cannot exceed the received amount (₹{receipt.ReceivedAmount:N2}).");
 
                 // 4. Validate each allocation against live invoice outstanding
                 foreach (var alloc in allocations)
                 {
+                    if (alloc.AllocatedAmount <= 0) continue;
+
                     var ichk = conn.CreateCommand();
                     ichk.CommandText = @"SELECT i.GrandTotal,
                         IFNULL((SELECT SUM(pra.AllocatedAmount) FROM PaymentReceiptAllocations pra WHERE pra.InvoiceId = i.Id), 0) as TotalPaid
@@ -2916,7 +2964,7 @@ namespace KrushiBillERP.Data
 
                     decimal invoiceTotal = Convert.ToDecimal(ir["GrandTotal"]);
                     decimal invoicePaid = Convert.ToDecimal(ir["TotalPaid"]);
-                    decimal invoiceOutstanding = invoiceTotal - invoicePaid;
+                    decimal invoiceOutstanding = Math.Max(0m, invoiceTotal - invoicePaid);
                     ir.Close();
 
                     if (alloc.AllocatedAmount > invoiceOutstanding + 0.01m)
@@ -2924,7 +2972,8 @@ namespace KrushiBillERP.Data
                 }
 
                 // 5. Calculate closing balance
-                receipt.ClosingBalance = liveBalance - receipt.ReceivedAmount;
+                decimal closingNet = (liveType == "Udhar" ? liveBalance : -liveBalance) - receipt.ReceivedAmount;
+                receipt.ClosingBalance = closingNet;
 
                 // 6. Insert PaymentReceipt header
                 var cmd = conn.CreateCommand();
@@ -3439,7 +3488,8 @@ namespace KrushiBillERP.Data
             var cmd = conn.CreateCommand();
             cmd.CommandText = @"SELECT pi.PurchaseItemId, pi.PurchaseId, pi.ProductId, pi.ProductName, pi.Company, 
                                        pi.BatchNumber, pi.ExpiryDate, pi.Quantity, pi.FreeQuantity, pi.PurchasePrice, pi.GST,
-                                       IFNULL(pi.HSN,'') as HSN, IFNULL(pi.CategoryName,'') as CategoryName
+                                       IFNULL(pi.HSN,'') as HSN, IFNULL(pi.CategoryName,'') as CategoryName,
+                                       IFNULL(pi.Unit,'') as Unit, IFNULL(pi.PackSize, 1) as PackSize
                                 FROM PurchaseItems pi
                                 WHERE (pi.ProductId IS NULL OR pi.ProductId = 0)
                                 ORDER BY pi.PurchaseItemId DESC";
@@ -3460,7 +3510,9 @@ namespace KrushiBillERP.Data
                     PurchasePrice = r["PurchasePrice"] is DBNull ? 0m : Convert.ToDecimal(r["PurchasePrice"]),
                     GST = r["GST"] is DBNull ? 0m : Convert.ToDecimal(r["GST"]),
                     HSN = r["HSN"]?.ToString() ?? "",
-                    CategoryName = r["CategoryName"]?.ToString() ?? ""
+                    CategoryName = r["CategoryName"]?.ToString() ?? "",
+                    Unit = r["Unit"]?.ToString() ?? "",
+                    PackSize = r["PackSize"] is DBNull ? 1m : Convert.ToDecimal(r["PackSize"])
                 });
             }
             return list;

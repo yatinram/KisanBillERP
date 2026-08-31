@@ -195,20 +195,11 @@
                             <TextBox x:Name="TxtPackSize" Style="{StaticResource FormTextBox}"/>
                         </StackPanel>
 
-                        <!-- Unit (Editable) -->
+                        <!-- Unit (Locked from Purchase Entry) -->
                         <StackPanel Margin="6,4">
-                            <TextBlock Text="Unit *" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox x:Name="CmbUnit" Height="34" VerticalContentAlignment="Center">
-                                <ComboBoxItem>ML</ComboBoxItem>
-                                <ComboBoxItem>Litre</ComboBoxItem>
-                                <ComboBoxItem>Gram</ComboBoxItem>
-                                <ComboBoxItem>KG</ComboBoxItem>
-                                <ComboBoxItem>Piece</ComboBoxItem>
-                                <ComboBoxItem>Bottle</ComboBoxItem>
-                                <ComboBoxItem>Packet</ComboBoxItem>
-                                <ComboBoxItem>Box</ComboBoxItem>
-                                <ComboBoxItem>Bag</ComboBoxItem>
-                            </ComboBox>
+                            <TextBlock Text="Unit 🔒" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="TxtUnit" Style="{StaticResource FormTextBox}" IsReadOnly="True" Background="{StaticResource LockedBg}" FontWeight="Bold"/>
+                            <ComboBox x:Name="CmbUnit" Visibility="Collapsed"/>
                         </StackPanel>
 
                         <!-- Minimum Stock Alert (Editable) -->

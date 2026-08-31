@@ -109,18 +109,30 @@ namespace KrushiBillERP.Views
                 if (TxtMobile != null) TxtMobile.Text = farmer.MobileNumber;
                 if (TxtVillage != null) TxtVillage.Text = farmer.VillageName;
 
-                // Load live outstanding balance
+                // Load live ledger balance (Udhar vs Jama Advance)
+                string obType = "Clear";
                 try
                 {
-                    _openingBalance = DatabaseHelper.GetFarmerOutstandingBalance(farmer.FarmerId);
+                    var (balAmt, balType) = DatabaseHelper.GetFarmerAccountLedgerBalance(farmer.FarmerId);
+                    _openingBalance = balType == "Udhar" ? balAmt : -balAmt;
+                    obType = balType;
                 }
                 catch (Exception dbEx)
                 {
                     _openingBalance = 0m;
                     KrushiBillERP.Data.Logger.Log(dbEx);
-                    MessageBox.Show($"Error fetching outstanding balance:\n{dbEx.Message}", "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error fetching account balance:\n{dbEx.Message}", "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                if (TxtOpeningBalance != null) TxtOpeningBalance.Text = $"₹ {_openingBalance:N2}";
+
+                if (TxtOpeningBalance != null)
+                {
+                    if (obType == "Jama")
+                        TxtOpeningBalance.Text = $"₹ {Math.Abs(_openingBalance):N2} Jama (Adv)";
+                    else if (obType == "Udhar")
+                        TxtOpeningBalance.Text = $"₹ {_openingBalance:N2} Udhar";
+                    else
+                        TxtOpeningBalance.Text = "₹ 0.00 (Clear)";
+                }
 
                 // Load outstanding invoices
                 try
@@ -346,19 +358,33 @@ namespace KrushiBillERP.Views
             decimal totalAllocated = _allocations.Sum(a => a.AllocatedAmount);
             TxtTotalAllocated.Text = $"Total Allocated: ₹ {totalAllocated:N2}";
 
-            decimal closing = Math.Max(0m, _openingBalance - received);
+            decimal closingNet = _openingBalance - received;
 
-            TxtSummaryOpening.Text = $"₹ {_openingBalance:N2}";
+            if (_openingBalance > 0)
+                TxtSummaryOpening.Text = $"₹ {_openingBalance:N2} Udhar";
+            else if (_openingBalance < 0)
+                TxtSummaryOpening.Text = $"₹ {Math.Abs(_openingBalance):N2} Jama (Adv)";
+            else
+                TxtSummaryOpening.Text = "₹ 0.00 (Clear)";
+
             TxtSummaryReceived.Text = $"₹ {received:N2}";
-            TxtSummaryClosing.Text = $"₹ {closing:N2}";
+
+            if (closingNet > 0)
+                TxtSummaryClosing.Text = $"₹ {closingNet:N2} Udhar";
+            else if (closingNet < 0)
+                TxtSummaryClosing.Text = $"₹ {Math.Abs(closingNet):N2} Jama (Adv)";
+            else
+                TxtSummaryClosing.Text = "₹ 0.00 (Clear)";
 
             if (TxtAllocStatus != null)
             {
-                if (received > 0 && Math.Abs(totalAllocated - received) > 0.01m)
+                if (received > 0 && totalAllocated > received + 0.01m)
                 {
-                    TxtAllocStatus.Text = totalAllocated < received
-                        ? $"⚠️ Unallocated: ₹ {(received - totalAllocated):N2}"
-                        : $"⚠️ Over-allocated: ₹ {(totalAllocated - received):N2}";
+                    TxtAllocStatus.Text = $"⚠️ Over-allocated: ₹ {(totalAllocated - received):N2}";
+                }
+                else if (received > totalAllocated + 0.01m)
+                {
+                    TxtAllocStatus.Text = $"🟢 Advance Deposit (Jama): ₹ {(received - totalAllocated):N2}";
                 }
                 else
                 {
@@ -386,13 +412,6 @@ namespace KrushiBillERP.Views
             if (!decimal.TryParse(TxtReceivedAmount.Text?.Trim(), out decimal receivedAmount) || receivedAmount <= 0)
             {
                 MessageBox.Show("Received amount is required and must be greater than zero.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                TxtReceivedAmount.Focus();
-                return;
-            }
-
-            if (receivedAmount > _openingBalance)
-            {
-                MessageBox.Show($"Received amount (₹{receivedAmount:N2}) cannot exceed the current outstanding balance (₹{_openingBalance:N2}).", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 TxtReceivedAmount.Focus();
                 return;
             }
@@ -429,9 +448,9 @@ namespace KrushiBillERP.Views
             var activeAllocations = _allocations.Where(a => a.AllocatedAmount > 0).ToList();
             decimal totalAllocated = activeAllocations.Sum(a => a.AllocatedAmount);
 
-            if (Math.Abs(totalAllocated - receivedAmount) > 0.01m)
+            if (totalAllocated > receivedAmount + 0.01m)
             {
-                MessageBox.Show($"Payment allocation (₹{totalAllocated:N2}) must equal the received amount (₹{receivedAmount:N2}).", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"Total allocation (₹{totalAllocated:N2}) cannot exceed the received amount (₹{receivedAmount:N2}).", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
