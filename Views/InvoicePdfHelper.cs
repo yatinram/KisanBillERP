@@ -63,33 +63,34 @@ namespace KrushiBillERP.Views
             double contentW = pageW - margin * 2;
 
             // ── HEADER BAND ──────────────────────────────────────────────
-            gfx.DrawRectangle(new XSolidBrush(Green), x - margin, 0, pageW, 70);
+            gfx.DrawRectangle(new XSolidBrush(Green), x - margin, 0, pageW, 80);
 
             var shopName = settings?.ShopName ?? "KrushiBill ERP";
-            gfx.DrawString(shopName, Bold(16), XBrushes.White,
-                new XRect(x, 14, contentW, 24), XStringFormats.TopLeft);
+            // Shop name takes LEFT half of header — prevents overlap with right-side doc type
+            gfx.DrawString(shopName, Bold(15), XBrushes.White,
+                new XRect(x, 10, contentW * 0.58, 22), XStringFormats.TopLeft);
 
             if (!string.IsNullOrWhiteSpace(settings?.ShopAddress))
             {
-                gfx.DrawString(settings.ShopAddress, Regular(9), XBrushes.White,
-                    new XRect(x, 36, contentW, 14), XStringFormats.TopLeft);
+                gfx.DrawString(settings.ShopAddress, Regular(8.5), XBrushes.White,
+                    new XRect(x, 34, contentW * 0.58, 14), XStringFormats.TopLeft);
             }
             if (!string.IsNullOrWhiteSpace(settings?.ShopPhone))
             {
-                gfx.DrawString($"📞 {settings.ShopPhone}", Regular(9), XBrushes.White,
-                    new XRect(x, 48, contentW, 14), XStringFormats.TopLeft);
+                gfx.DrawString($"Ph: {settings.ShopPhone}", Regular(8.5), XBrushes.White,
+                    new XRect(x, 50, contentW * 0.58, 14), XStringFormats.TopLeft);
             }
 
-            // TAX INVOICE label (right side of header)
+            // TAX INVOICE — anchored RIGHT, takes RIGHT half — no overlap with shop name
             gfx.DrawString("TAX INVOICE", Bold(14), XBrushes.White,
-                new XRect(x, 14, contentW, 24), XStringFormats.TopRight);
+                new XRect(x + contentW * 0.42, 10, contentW * 0.58, 22), XStringFormats.TopRight);
             if (!string.IsNullOrWhiteSpace(settings?.GSTIN))
             {
-                gfx.DrawString($"GSTIN: {settings.GSTIN}", Regular(9), XBrushes.White,
-                    new XRect(x, 36, contentW, 14), XStringFormats.TopRight);
+                gfx.DrawString($"GSTIN: {settings.GSTIN}", Regular(8.5), XBrushes.White,
+                    new XRect(x + contentW * 0.42, 34, contentW * 0.58, 14), XStringFormats.TopRight);
             }
 
-            y = 86;
+            y = 96;
 
             // ── INVOICE META (two columns) ────────────────────────────────
             // Left: customer info
@@ -101,18 +102,18 @@ namespace KrushiBillERP.Views
             y += 16;
             if (!string.IsNullOrWhiteSpace(invoice.MobileNumber))
             {
-                gfx.DrawString($"📞 {invoice.MobileNumber}", Regular(10), new XSolidBrush(TextMuted),
+                gfx.DrawString($"Ph: {invoice.MobileNumber}", Regular(10), new XSolidBrush(TextMuted),
                     new XRect(x, y, contentW / 2, 14), XStringFormats.TopLeft);
                 y += 14;
             }
             if (!string.IsNullOrWhiteSpace(invoice.VillageName))
             {
-                gfx.DrawString($"📍 {invoice.VillageName}", Regular(10), new XSolidBrush(TextMuted),
+                gfx.DrawString($"Village: {invoice.VillageName}", Regular(10), new XSolidBrush(TextMuted),
                     new XRect(x, y, contentW / 2, 14), XStringFormats.TopLeft);
             }
 
-            // Right: invoice numbers & dates
-            double infoY = 86;
+            // Right: invoice numbers & dates — anchored at fixed Y=96 independent of left column
+            double infoY = 96;
             DrawLabelValue(gfx, x + contentW / 2, infoY, contentW / 2,
                 "Invoice No.:", invoice.InvoiceNo ?? "");
             infoY += 18;
@@ -134,23 +135,36 @@ namespace KrushiBillERP.Views
             gfx.DrawLine(new XPen(BorderColor, 0.5), x, y, x + contentW, y);
             y += 12;
 
-            // ── ITEMS TABLE HEADER ────────────────────────────────────────
-            double[] colW = { contentW * 0.38, contentW * 0.08, contentW * 0.13, contentW * 0.08, contentW * 0.15, contentW * 0.18 };
+            // ── ITEMS TABLE ───────────────────────────────────────────────
+            // Column widths as exact % of contentW — sum = 100%, no overflow
+            double[] colW = {
+                contentW * 0.35,  // Product Name
+                contentW * 0.09,  // Qty
+                contentW * 0.14,  // Rate (₹)
+                contentW * 0.09,  // GST%
+                contentW * 0.15,  // Batch
+                contentW * 0.18   // Amount (₹)
+            };
             string[] headers = { "Product", "Qty", "Rate (₹)", "GST%", "Batch", "Amount (₹)" };
 
+            const double headerRowH = 24;
+            const double dataRowH   = 22;
+
             // Header background
-            gfx.DrawRectangle(new XSolidBrush(Green), x, y, contentW, 20);
+            gfx.DrawRectangle(new XSolidBrush(Green), x, y, contentW, headerRowH);
+
             double cx = x;
             for (int i = 0; i < headers.Length; i++)
             {
-                var align = i == 0 ? XStringFormats.TopLeft : XStringFormats.TopRight;
-                double padL = i == 0 ? 6 : 0;
-                double padR = i == 0 ? 0 : 6;
+                var align = (i == 0) ? XStringFormats.CenterLeft : XStringFormats.CenterRight;
                 gfx.DrawString(headers[i], Bold(9), XBrushes.White,
-                    new XRect(cx + padL, y + 4, colW[i] - padL - padR, 14), align);
+                    new XRect(cx + 5, y, colW[i] - 10, headerRowH), align);
                 cx += colW[i];
+                // Vertical divider between columns
+                if (i < headers.Length - 1)
+                    gfx.DrawLine(new XPen(XColor.FromArgb(255, 255, 255, 255), 0.4), cx, y, cx, y + headerRowH);
             }
-            y += 20;
+            y += headerRowH;
 
             // ── ITEMS ROWS ────────────────────────────────────────────────
             bool alt = false;
@@ -158,7 +172,7 @@ namespace KrushiBillERP.Views
             foreach (var item in items)
             {
                 if (alt)
-                    gfx.DrawRectangle(new XSolidBrush(RowAlt), x, y, contentW, 18);
+                    gfx.DrawRectangle(new XSolidBrush(RowAlt), x, y, contentW, dataRowH);
                 alt = !alt;
 
                 string[] svals =
@@ -166,7 +180,7 @@ namespace KrushiBillERP.Views
                     item.ProductName ?? "",
                     item.Qty.ToString(),
                     ((double)item.Rate).ToString("N2"),
-                    ((double)item.GstPercent).ToString("N1"),
+                    ((double)item.GstPercent).ToString("N1") + "%",
                     item.BatchNo ?? "-",
                     ((double)item.Amount).ToString("N2")
                 };
@@ -174,15 +188,18 @@ namespace KrushiBillERP.Views
                 cx = x;
                 for (int i = 0; i < svals.Length; i++)
                 {
-                    var align = i == 0 ? XStringFormats.TopLeft : XStringFormats.TopRight;
-                    double padL = i == 0 ? 6 : 0;
-                    double padR = i == 0 ? 0 : 6;
-                    gfx.DrawString(svals[i], i == 5 ? Bold(9) : Regular(9), new XSolidBrush(TextDark),
-                        new XRect(cx + padL, y + 3, colW[i] - padL - padR, 14), align);
+                    var align = (i == 0) ? XStringFormats.CenterLeft : XStringFormats.CenterRight;
+                    gfx.DrawString(svals[i], (i == 5) ? Bold(9) : Regular(9), new XSolidBrush(TextDark),
+                        new XRect(cx + 5, y, colW[i] - 10, dataRowH), align);
                     cx += colW[i];
+                    // Vertical divider between data columns
+                    if (i < svals.Length - 1)
+                        gfx.DrawLine(new XPen(BorderColor, 0.3), cx, y, cx, y + dataRowH);
                 }
                 rowTotal += item.Amount;
-                y += 18;
+                // Horizontal row border
+                gfx.DrawLine(new XPen(BorderColor, 0.3), x, y + dataRowH, x + contentW, y + dataRowH);
+                y += dataRowH;
             }
 
             // Bottom border of table

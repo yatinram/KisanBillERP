@@ -98,21 +98,37 @@ namespace KrushiBillERP.Views
 
             y += 76;
 
-            // ── ITEMS TABLE HEADER ───────────────────────────────────────
-            double[] colWidths = { 24, 130, 80, 65, 65, 45, 55, 40, 60 }; // total = 564 ~ contentW
+            // ── ITEMS TABLE ───────────────────────────────────────────────
+            // Column widths as % of contentW — sum = 100%, no overflow ever
+            double[] colWidths = {
+                contentW * 0.04,  // #
+                contentW * 0.26,  // Product
+                contentW * 0.14,  // Company
+                contentW * 0.11,  // Batch
+                contentW * 0.11,  // Expiry
+                contentW * 0.08,  // Qty
+                contentW * 0.12,  // Price
+                contentW * 0.07,  // GST
+                contentW * 0.07   // Amount
+            };
             string[] headers = { "#", "Product", "Company", "Batch", "Expiry", "Qty", "Price", "GST", "Amount" };
 
+            const double headerH = 24;
+            const double rowH    = 22;
+
             // Draw Header Bar
-            gfx.DrawRectangle(new XSolidBrush(PrimaryGreen), x, y, contentW, 20);
+            gfx.DrawRectangle(new XSolidBrush(PrimaryGreen), x, y, contentW, headerH);
             double curX = x;
             for (int i = 0; i < headers.Length; i++)
             {
-                var align = (i >= 5) ? XStringFormats.CenterLeft : XStringFormats.CenterLeft;
+                var align = (i >= 5) ? XStringFormats.CenterRight : XStringFormats.CenterLeft;
                 gfx.DrawString(headers[i], Bold(9), XBrushes.White,
-                    new XRect(curX + 4, y, colWidths[i] - 8, 20), align);
+                    new XRect(curX + 5, y, colWidths[i] - 10, headerH), align);
                 curX += colWidths[i];
+                if (i < headers.Length - 1)
+                    gfx.DrawLine(new XPen(XColors.White, 0.4), curX, y, curX, y + headerH);
             }
-            y += 20;
+            y += headerH;
 
             // Draw Item Rows
             int idx = 1;
@@ -120,25 +136,40 @@ namespace KrushiBillERP.Views
             {
                 bool isAlt = (idx % 2 == 0);
                 if (isAlt)
-                {
-                    gfx.DrawRectangle(new XSolidBrush(LightBg), x, y, contentW, 18);
-                }
+                    gfx.DrawRectangle(new XSolidBrush(LightBg), x, y, contentW, rowH);
 
                 curX = x;
                 string qtyStr = item.FreeQuantity > 0 ? $"{item.Quantity}+{item.FreeQuantity}" : item.Quantity.ToString();
                 string expStr = item.ExpiryDate.HasValue ? item.ExpiryDate.Value.ToString("dd/MM/yy") : "-";
 
-                gfx.DrawString(idx.ToString(), Regular(9), new XSolidBrush(TextDark), new XRect(curX + 4, y + 2, colWidths[0] - 8, 14), XStringFormats.TopLeft); curX += colWidths[0];
-                gfx.DrawString(item.ProductName ?? "", Bold(9), new XSolidBrush(TextDark), new XRect(curX + 4, y + 2, colWidths[1] - 8, 14), XStringFormats.TopLeft); curX += colWidths[1];
-                gfx.DrawString(item.Company ?? "", Regular(8), new XSolidBrush(TextMuted), new XRect(curX + 4, y + 2, colWidths[2] - 8, 14), XStringFormats.TopLeft); curX += colWidths[2];
-                gfx.DrawString(item.BatchNumber ?? "", Regular(8), new XSolidBrush(TextDark), new XRect(curX + 4, y + 2, colWidths[3] - 8, 14), XStringFormats.TopLeft); curX += colWidths[3];
-                gfx.DrawString(expStr, Regular(8), new XSolidBrush(TextDark), new XRect(curX + 4, y + 2, colWidths[4] - 8, 14), XStringFormats.TopLeft); curX += colWidths[4];
-                gfx.DrawString(qtyStr, Regular(9), new XSolidBrush(TextDark), new XRect(curX + 4, y + 2, colWidths[5] - 8, 14), XStringFormats.TopLeft); curX += colWidths[5];
-                gfx.DrawString($"₹{item.PurchasePrice:N2}", Regular(8), new XSolidBrush(TextDark), new XRect(curX + 4, y + 2, colWidths[6] - 8, 14), XStringFormats.TopLeft); curX += colWidths[6];
-                gfx.DrawString($"{item.GST}%", Regular(8), new XSolidBrush(TextMuted), new XRect(curX + 4, y + 2, colWidths[7] - 8, 14), XStringFormats.TopLeft); curX += colWidths[7];
-                gfx.DrawString($"₹{item.Amount:N2}", Bold(9), new XSolidBrush(TextDark), new XRect(curX + 4, y + 2, colWidths[8] - 8, 14), XStringFormats.TopLeft);
+                // Draw each cell manually
+                var cells = new (string val, XFont fnt, bool right)[]
+                {
+                    (idx.ToString(),                    Regular(9),  false),
+                    (item.ProductName ?? "",            Bold(9),     false),
+                    (item.Company ?? "",                Regular(8),  false),
+                    (item.BatchNumber ?? "",            Regular(8),  false),
+                    (expStr,                            Regular(8),  false),
+                    (qtyStr,                            Regular(9),  true),
+                    ($"₹{item.PurchasePrice:N2}",       Regular(8),  true),
+                    ($"{item.GST}%",                    Regular(8),  true),
+                    ($"₹{item.Amount:N2}",              Bold(9),     true),
+                };
 
-                y += 18;
+                curX = x;
+                for (int ci = 0; ci < cells.Length; ci++)
+                {
+                    var (val, fnt, right) = cells[ci];
+                    var algn = right ? XStringFormats.CenterRight : XStringFormats.CenterLeft;
+                    gfx.DrawString(val, fnt, new XSolidBrush(ci == 7 ? TextMuted : TextDark),
+                        new XRect(curX + 5, y, colWidths[ci] - 10, rowH), algn);
+                    curX += colWidths[ci];
+                    if (ci < cells.Length - 1)
+                        gfx.DrawLine(new XPen(BorderColor, 0.3), curX, y, curX, y + rowH);
+                }
+
+                gfx.DrawLine(new XPen(BorderColor, 0.3), x, y + rowH, x + contentW, y + rowH);
+                y += rowH;
                 idx++;
             }
 

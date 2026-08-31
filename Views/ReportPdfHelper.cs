@@ -37,7 +37,7 @@ namespace KrushiBillERP.Views
             page.Width = XUnit.FromMillimeter(210); // A4
             page.Height = XUnit.FromMillimeter(297);
 
-            using var gfx = XGraphics.FromPdfPage(page);
+            var gfx = XGraphics.FromPdfPage(page);
 
             double margin = 36;
             double pageW = page.Width.Point;
@@ -46,25 +46,27 @@ namespace KrushiBillERP.Views
             double contentW = pageW - margin * 2;
 
             // ── HEADER BAND ──────────────────────────────────────────────
-            gfx.DrawRectangle(new XSolidBrush(PrimaryGreen), x - margin, 0, pageW, 64);
+            gfx.DrawRectangle(new XSolidBrush(PrimaryGreen), x - margin, 0, pageW, 72);
 
             var shopName = settings?.ShopName ?? "KRUSHI KENDRA AGRICULTURE & PESTICIDES";
-            gfx.DrawString(shopName, Bold(14), XBrushes.White,
-                new XRect(x, 12, contentW, 20), XStringFormats.TopLeft);
+            // Shop name: LEFT half only — never overlaps with right-side report title
+            gfx.DrawString(shopName, Bold(13), XBrushes.White,
+                new XRect(x, 10, contentW * 0.55, 20), XStringFormats.TopLeft);
 
             if (!string.IsNullOrWhiteSpace(settings?.ShopAddress))
             {
                 gfx.DrawString(settings.ShopAddress, Regular(8), XBrushes.White,
-                    new XRect(x, 32, contentW, 12), XStringFormats.TopLeft);
+                    new XRect(x, 32, contentW * 0.55, 12), XStringFormats.TopLeft);
             }
 
-            gfx.DrawString(reportTitle.ToUpper(), Bold(13), XBrushes.White,
-                new XRect(x, 12, contentW, 20), XStringFormats.TopRight);
+            // Report title: RIGHT half, anchored right — never overlaps shop name
+            gfx.DrawString(reportTitle.ToUpper(), Bold(12), XBrushes.White,
+                new XRect(x + contentW * 0.45, 10, contentW * 0.55, 20), XStringFormats.TopRight);
 
             gfx.DrawString($"Generated: {DateTime.Now:dd MMM yyyy, hh:mm tt}", Regular(8), XBrushes.White,
-                new XRect(x, 32, contentW, 12), XStringFormats.TopRight);
+                new XRect(x + contentW * 0.45, 32, contentW * 0.55, 12), XStringFormats.TopRight);
 
-            y = 76;
+            y = 84;
 
             // ── SUMMARY BANNER ───────────────────────────────────────────
             if (!string.IsNullOrWhiteSpace(summaryText))
@@ -92,53 +94,61 @@ namespace KrushiBillERP.Views
                     int colCount = props.Length;
                     double colWidth = contentW / colCount;
 
-                    // Table Header
-                    gfx.DrawRectangle(new XSolidBrush(PrimaryGreen), x, y, contentW, 20);
-                    for (int i = 0; i < colCount; i++)
+                    const double hdrH = 24;
+                    const double rH   = 20;
+
+                    void DrawTableHeader(XGraphics g, double startY)
                     {
-                        string headerName = FormatHeaderName(props[i].Name);
-                        gfx.DrawString(headerName, Bold(8.5), XBrushes.White,
-                            new XRect(x + (i * colWidth) + 4, y + 3, colWidth - 8, 14), XStringFormats.TopLeft);
+                        g.DrawRectangle(new XSolidBrush(PrimaryGreen), x, startY, contentW, hdrH);
+                        for (int i = 0; i < colCount; i++)
+                        {
+                            string headerName = FormatHeaderName(props[i].Name);
+                            g.DrawString(headerName, Bold(8.5), XBrushes.White,
+                                new XRect(x + (i * colWidth) + 5, startY, colWidth - 10, hdrH), XStringFormats.CenterLeft);
+                            if (i < colCount - 1)
+                                g.DrawLine(new XPen(XColors.White, 0.4),
+                                    x + ((i + 1) * colWidth), startY,
+                                    x + ((i + 1) * colWidth), startY + hdrH);
+                        }
                     }
-                    y += 20;
+
+                    // Table Header
+                    DrawTableHeader(gfx, y);
+                    y += hdrH;
 
                     // Rows
                     int rIdx = 1;
                     foreach (var rowItem in list)
                     {
-                        if (y > page.Height.Point - 50)
+                        if (y > page.Height.Point - 60)
                         {
-                            // Page break
+                            // Page break — add new page, re-draw header
                             page = doc.AddPage();
                             page.Width = XUnit.FromMillimeter(210);
                             page.Height = XUnit.FromMillimeter(297);
-                            using (var newGfx = XGraphics.FromPdfPage(page))
-                            {
-                                // Draw header bar on new page
-                                newGfx.DrawRectangle(new XSolidBrush(PrimaryGreen), x, margin, contentW, 20);
-                                for (int i = 0; i < colCount; i++)
-                                {
-                                    newGfx.DrawString(FormatHeaderName(props[i].Name), Bold(8.5), XBrushes.White,
-                                        new XRect(x + (i * colWidth) + 4, margin + 3, colWidth - 8, 14), XStringFormats.TopLeft);
-                                }
-                            }
-                            y = margin + 20;
+                            gfx.Dispose();
+                            gfx = XGraphics.FromPdfPage(page);
+                            DrawTableHeader(gfx, margin);
+                            y = margin + hdrH;
                         }
 
                         bool isAlt = (rIdx % 2 == 0);
                         if (isAlt)
-                        {
-                            gfx.DrawRectangle(new XSolidBrush(LightBg), x, y, contentW, 16);
-                        }
+                            gfx.DrawRectangle(new XSolidBrush(LightBg), x, y, contentW, rH);
 
                         for (int i = 0; i < colCount; i++)
                         {
                             string cellVal = props[i].GetValue(rowItem)?.ToString() ?? "";
                             gfx.DrawString(cellVal, Regular(8), new XSolidBrush(TextDark),
-                                new XRect(x + (i * colWidth) + 4, y + 2, colWidth - 8, 12), XStringFormats.TopLeft);
+                                new XRect(x + (i * colWidth) + 5, y, colWidth - 10, rH), XStringFormats.CenterLeft);
+                            if (i < colCount - 1)
+                                gfx.DrawLine(new XPen(BorderColor, 0.3),
+                                    x + ((i + 1) * colWidth), y,
+                                    x + ((i + 1) * colWidth), y + rH);
                         }
 
-                        y += 16;
+                        gfx.DrawLine(new XPen(BorderColor, 0.3), x, y + rH, x + contentW, y + rH);
+                        y += rH;
                         rIdx++;
                     }
 

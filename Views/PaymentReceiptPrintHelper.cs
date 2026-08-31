@@ -47,17 +47,19 @@ namespace KrushiBillERP.Views
 
         private static FlowDocument CreateFlowDocument(PaymentReceipt receipt, List<PaymentReceiptAllocation> allocations)
         {
+            var settings = DatabaseHelper.GetCompanySettings();
             var doc = new FlowDocument();
             doc.FontFamily = new FontFamily("Segoe UI");
 
             // Header Section
-            var pShopName = new Paragraph(new Run("KRUSHI KENDRA AGRICULTURE & PESTICIDES"))
+            string shopName = settings?.ShopName ?? "KRUSHI KENDRA AGRICULTURE & PESTICIDES";
+            var pShopName = new Paragraph(new Run(shopName))
             {
-                FontSize = 18,
+                FontSize = 17,
                 FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1B5E20")),
                 TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 4)
+                Margin = new Thickness(0, 0, 0, 2)
             };
             doc.Blocks.Add(pShopName);
 

@@ -81,37 +81,71 @@ namespace KrushiBillERP.Views
 
             y += 76;
 
-            // Items Table
-            double[] colWidths = { 24, 150, 90, 75, 65, 75, 84 };
+            // Items Table — column widths as % of contentW (sum = 100%, no overflow)
+            double[] colWidths = {
+                contentW * 0.04,  // #
+                contentW * 0.30,  // Product Name
+                contentW * 0.15,  // Batch
+                contentW * 0.12,  // Expiry
+                contentW * 0.12,  // Return Qty
+                contentW * 0.13,  // Price
+                contentW * 0.14   // Amount
+            };
             string[] headers = { "#", "Product Name", "Batch", "Expiry", "Return Qty", "Price", "Amount" };
 
-            gfx.DrawRectangle(new PdfSharp.Drawing.XSolidBrush(darkGreen), x, y, contentW, 20);
+            const double headerH = 24;
+            const double rowH    = 22;
+
+            gfx.DrawRectangle(new PdfSharp.Drawing.XSolidBrush(darkGreen), x, y, contentW, headerH);
             double curX = x;
             for (int i = 0; i < headers.Length; i++)
             {
-                gfx.DrawString(headers[i], Bold(9), PdfSharp.Drawing.XBrushes.White, new PdfSharp.Drawing.XRect(curX + 4, y, colWidths[i] - 8, 20), PdfSharp.Drawing.XStringFormats.CenterLeft);
+                var align = (i >= 4) ? PdfSharp.Drawing.XStringFormats.CenterRight : PdfSharp.Drawing.XStringFormats.CenterLeft;
+                gfx.DrawString(headers[i], Bold(9), PdfSharp.Drawing.XBrushes.White,
+                    new PdfSharp.Drawing.XRect(curX + 5, y, colWidths[i] - 10, headerH), align);
                 curX += colWidths[i];
+                if (i < headers.Length - 1)
+                    gfx.DrawLine(new PdfSharp.Drawing.XPen(PdfSharp.Drawing.XColors.White, 0.4), curX, y, curX, y + headerH);
             }
-            y += 20;
+            y += headerH;
 
             int idx = 1;
             foreach (var item in items)
             {
                 bool isAlt = (idx % 2 == 0);
-                if (isAlt) gfx.DrawRectangle(new PdfSharp.Drawing.XSolidBrush(lightBg), x, y, contentW, 18);
+                if (isAlt) gfx.DrawRectangle(new PdfSharp.Drawing.XSolidBrush(lightBg), x, y, contentW, rowH);
 
                 curX = x;
                 string expStr = item.ExpiryDate.HasValue ? item.ExpiryDate.Value.ToString("dd/MM/yy") : "-";
 
-                gfx.DrawString(idx.ToString(), Regular(9), new PdfSharp.Drawing.XSolidBrush(textDark), new PdfSharp.Drawing.XRect(curX + 4, y + 2, colWidths[0] - 8, 14), PdfSharp.Drawing.XStringFormats.TopLeft); curX += colWidths[0];
-                gfx.DrawString(item.ProductName ?? "", Bold(9), new PdfSharp.Drawing.XSolidBrush(textDark), new PdfSharp.Drawing.XRect(curX + 4, y + 2, colWidths[1] - 8, 14), PdfSharp.Drawing.XStringFormats.TopLeft); curX += colWidths[1];
-                gfx.DrawString(item.BatchNumber ?? "", Regular(8), new PdfSharp.Drawing.XSolidBrush(textDark), new PdfSharp.Drawing.XRect(curX + 4, y + 2, colWidths[2] - 8, 14), PdfSharp.Drawing.XStringFormats.TopLeft); curX += colWidths[2];
-                gfx.DrawString(expStr, Regular(8), new PdfSharp.Drawing.XSolidBrush(textDark), new PdfSharp.Drawing.XRect(curX + 4, y + 2, colWidths[3] - 8, 14), PdfSharp.Drawing.XStringFormats.TopLeft); curX += colWidths[3];
-                gfx.DrawString(item.ReturnQuantity.ToString(), Bold(9), new PdfSharp.Drawing.XSolidBrush(textDark), new PdfSharp.Drawing.XRect(curX + 4, y + 2, colWidths[4] - 8, 14), PdfSharp.Drawing.XStringFormats.TopLeft); curX += colWidths[4];
-                gfx.DrawString($"₹{item.PurchasePrice:N2}", Regular(8), new PdfSharp.Drawing.XSolidBrush(textDark), new PdfSharp.Drawing.XRect(curX + 4, y + 2, colWidths[5] - 8, 14), PdfSharp.Drawing.XStringFormats.TopLeft); curX += colWidths[5];
-                gfx.DrawString($"₹{item.Amount:N2}", Bold(9), new PdfSharp.Drawing.XSolidBrush(textDark), new PdfSharp.Drawing.XRect(curX + 4, y + 2, colWidths[6] - 8, 14), PdfSharp.Drawing.XStringFormats.TopLeft);
+                var cells = new (string val, bool right)[]
+                {
+                    (idx.ToString(),                    false),
+                    (item.ProductName ?? "",             false),
+                    (item.BatchNumber ?? "",             false),
+                    (expStr,                             false),
+                    (item.ReturnQuantity.ToString(),     true),
+                    ($"₹{item.PurchasePrice:N2}",        true),
+                    ($"₹{item.Amount:N2}",               true),
+                };
 
-                y += 18;
+                var fonts = new PdfSharp.Drawing.XFont[]
+                {
+                    Regular(9), Bold(9), Regular(8), Regular(8), Bold(9), Regular(8), Bold(9)
+                };
+
+                for (int ci = 0; ci < cells.Length; ci++)
+                {
+                    var algn = cells[ci].right ? PdfSharp.Drawing.XStringFormats.CenterRight : PdfSharp.Drawing.XStringFormats.CenterLeft;
+                    gfx.DrawString(cells[ci].val, fonts[ci], new PdfSharp.Drawing.XSolidBrush(textDark),
+                        new PdfSharp.Drawing.XRect(curX + 5, y, colWidths[ci] - 10, rowH), algn);
+                    curX += colWidths[ci];
+                    if (ci < cells.Length - 1)
+                        gfx.DrawLine(new PdfSharp.Drawing.XPen(borderColor, 0.3), curX, y, curX, y + rowH);
+                }
+
+                gfx.DrawLine(new PdfSharp.Drawing.XPen(borderColor, 0.3), x, y + rowH, x + contentW, y + rowH);
+                y += rowH;
                 idx++;
             }
 
@@ -174,17 +208,19 @@ namespace KrushiBillERP.Views
 
         private static FlowDocument CreateFlowDocument(PurchaseReturn rHeader, System.Collections.Generic.List<PurchaseReturnItem> items)
         {
+            var settings = DatabaseHelper.GetCompanySettings();
             var doc = new FlowDocument();
             doc.FontFamily = new FontFamily("Segoe UI");
 
             // Header Section
-            var pShopName = new Paragraph(new Run("KRUSHI KENDRA AGRICULTURE & PESTICIDES"))
+            string shopName = settings?.ShopName ?? "KRUSHI KENDRA AGRICULTURE & PESTICIDES";
+            var pShopName = new Paragraph(new Run(shopName))
             {
-                FontSize = 18,
+                FontSize = 17,
                 FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1B5E20")),
                 TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 4)
+                Margin = new Thickness(0, 0, 0, 2)
             };
             doc.Blocks.Add(pShopName);
 
