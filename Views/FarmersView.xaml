@@ -324,7 +324,10 @@
             <DataGrid x:Name="DgFarmers" AutoGenerateColumns="False" CanUserAddRows="False"
                       CanUserDeleteRows="False" IsReadOnly="True" RowHeight="52" HeadersVisibility="Column"
                       GridLinesVisibility="None" BorderThickness="0" Background="Transparent"
-                      Style="{StaticResource PremiumDataGridStyle}" ColumnWidth="*" AlternationCount="2">
+                      Style="{StaticResource PremiumDataGridStyle}" AlternationCount="2"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
 
                 <DataGrid.Resources>
                     <Style x:Key="CellTextBlockCenter" TargetType="TextBlock">

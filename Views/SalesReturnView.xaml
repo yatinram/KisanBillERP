@@ -167,10 +167,11 @@
                 <!-- DataGrid -->
                 <DataGrid x:Name="GridReturns" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
                           CanUserAddRows="False" CanUserDeleteRows="False" GridLinesVisibility="None" HeadersVisibility="Column"
-                          Style="{StaticResource PremiumDataGridStyle}" ColumnWidth="*" RowHeight="52"
+                          Style="{StaticResource PremiumDataGridStyle}" RowHeight="52"
                           Background="White" BorderThickness="0"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="No" Binding="{Binding SalesReturnId}" Width="60"/>
                         <DataGridTextColumn Header="Return No." Binding="{Binding ReturnNumber}" Width="160" FontWeight="Bold" Foreground="#1B5E20"/>

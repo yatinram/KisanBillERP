@@ -1,7 +1,7 @@
 <Window x:Class="KrushiBillERP.Views.InvoiceDetailsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Invoice Details &amp; Preview" Height="720" Width="880" 
+        Title="Invoice Details &amp; Preview" Height="720" Width="880" MinWidth="780" MinHeight="580"
         WindowStartupLocation="CenterOwner" Background="#F4F6F5">
 
     <Window.Resources>

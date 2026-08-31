@@ -202,28 +202,67 @@ namespace KrushiBillERP.Data
             string sStr = start.ToString("yyyy-MM-dd HH:mm:ss");
             string eStr = end.ToString("yyyy-MM-dd HH:mm:ss");
 
-            // 1. Gross sales breakdown for bills created within date range
+            // 1. Fetch invoices created within date range
             var invCmd = conn.CreateCommand();
             invCmd.CommandText = @"
-                SELECT 
-                    IFNULL(SUM(CASE WHEN PaymentMethod NOT LIKE '%UPI%' AND PaymentMethod NOT LIKE '%Online%' THEN PaidAmount ELSE 0 END), 0) as CashPaid,
-                    IFNULL(SUM(CASE WHEN PaymentMethod LIKE '%UPI%' OR PaymentMethod LIKE '%Online%' THEN PaidAmount ELSE 0 END), 0) as OnlinePaid,
-                    IFNULL(SUM(PayableAmount), 0) as UdharRemaining,
-                    IFNULL(SUM(GrandTotal), 0) as TotalGross
+                SELECT Id as InvoiceId, FarmerId, PaymentMethod, PaidAmount, PayableAmount, GrandTotal
                 FROM Invoices
                 WHERE datetime(InvoiceDate) >= $s AND datetime(InvoiceDate) <= $e AND (Status IS NULL OR Status != 'Cancelled')";
             invCmd.Parameters.AddWithValue("$s", sStr);
             invCmd.Parameters.AddWithValue("$e", eStr);
 
             decimal grossCash = 0m, grossOnline = 0m, grossUdhar = 0m, grossTotal = 0m;
+            var invoiceList = new List<(int InvoiceId, int FarmerId, string PayMethod, decimal PaidAmt, decimal PayableAmt, decimal Total)>();
+
             using (var r = invCmd.ExecuteReader())
             {
-                if (r.Read())
+                while (r.Read())
                 {
-                    grossCash = Convert.ToDecimal(r["CashPaid"]);
-                    grossOnline = Convert.ToDecimal(r["OnlinePaid"]);
-                    grossUdhar = Convert.ToDecimal(r["UdharRemaining"]);
-                    grossTotal = Convert.ToDecimal(r["TotalGross"]);
+                    int invId = Convert.ToInt32(r["InvoiceId"]);
+                    int farmerId = r["FarmerId"] is DBNull ? 0 : Convert.ToInt32(r["FarmerId"]);
+                    string pMethod = r["PaymentMethod"]?.ToString() ?? "";
+                    decimal paid = Convert.ToDecimal(r["PaidAmount"]);
+                    decimal payable = Convert.ToDecimal(r["PayableAmount"]);
+                    decimal total = Convert.ToDecimal(r["GrandTotal"]);
+                    invoiceList.Add((invId, farmerId, pMethod, paid, payable, total));
+                }
+            }
+
+            foreach (var inv in invoiceList)
+            {
+                grossTotal += inv.Total;
+                bool isOnline = inv.PayMethod.IndexOf("UPI", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                inv.PayMethod.IndexOf("Online", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                decimal invUdhar = inv.PayableAmt;
+                decimal invPaid = inv.PaidAmt;
+
+                if (inv.FarmerId > 0 && invUdhar > 0)
+                {
+                    var (bal, btype) = GetFarmerAccountLedgerBalance(inv.FarmerId, conn);
+                    if (string.Equals(btype, "Jama", StringComparison.OrdinalIgnoreCase) || string.Equals(btype, "Clear", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Farmer has Advance Jama or 0 balance — invoice is fully covered by advance/payments!
+                        invUdhar = 0m;
+                        invPaid = inv.Total;
+                    }
+                    else if (string.Equals(btype, "Udhar", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Invoice Udhar cannot exceed farmer's net Udhar balance
+                        invUdhar = Math.Min(inv.PayableAmt, bal);
+                        invPaid = inv.Total - invUdhar;
+                    }
+                }
+
+                if (invUdhar > 0)
+                {
+                    grossUdhar += invUdhar;
+                }
+
+                if (invPaid > 0)
+                {
+                    if (isOnline) grossOnline += invPaid;
+                    else grossCash += invPaid;
                 }
             }
 
@@ -261,9 +300,35 @@ namespace KrushiBillERP.Data
         public static decimal GetTotalOutstandingUdhar()
         {
             using var conn = GetConnection();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT IFNULL(SUM(PayableAmount), 0) FROM Invoices WHERE (Status IS NULL OR Status != 'Cancelled') AND PayableAmount > 0";
-            return Convert.ToDecimal(cmd.ExecuteScalar());
+            decimal totalShopUdhar = 0m;
+
+            // 1. Sum net Udhar balances for all registered farmers
+            var fCmd = conn.CreateCommand();
+            fCmd.CommandText = "SELECT FarmerId FROM Farmers WHERE Status=1";
+            var farmerIds = new List<int>();
+            using (var r = fCmd.ExecuteReader())
+            {
+                while (r.Read())
+                {
+                    farmerIds.Add(Convert.ToInt32(r[0]));
+                }
+            }
+
+            foreach (var fid in farmerIds)
+            {
+                var (bal, btype) = GetFarmerAccountLedgerBalance(fid, conn);
+                if (string.Equals(btype, "Udhar", StringComparison.OrdinalIgnoreCase))
+                {
+                    totalShopUdhar += bal;
+                }
+            }
+
+            // 2. Add unassigned walk-in invoices (FarmerId IS NULL or 0)
+            var walkInCmd = conn.CreateCommand();
+            walkInCmd.CommandText = "SELECT IFNULL(SUM(PayableAmount), 0) FROM Invoices WHERE (FarmerId IS NULL OR FarmerId = 0) AND (Status IS NULL OR Status != 'Cancelled') AND PayableAmount > 0";
+            totalShopUdhar += Convert.ToDecimal(walkInCmd.ExecuteScalar());
+
+            return totalShopUdhar;
         }
 
         public static List<(string Label, decimal Value)> GetSalesSeries(DateTime start, DateTime end, string period)

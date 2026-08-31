@@ -359,8 +359,10 @@
 							  CanUserDeleteRows="False" IsReadOnly="True" RowHeight="52" HeadersVisibility="Column"
 							  GridLinesVisibility="None" BorderThickness="0" Background="Transparent"
 							  AlternatingRowBackground="{StaticResource RowAlt}"
-							  Style="{StaticResource PremiumDataGridStyle}" ColumnWidth="*" AlternationCount="2"
-							  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							  Style="{StaticResource PremiumDataGridStyle}" AlternationCount="2"
+							  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+							  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+							  ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
 
 						<DataGrid.Resources>
 							<Style x:Key="CellTextBlockCenter" TargetType="TextBlock">

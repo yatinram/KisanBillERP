@@ -1,7 +1,7 @@
 <Window x:Class="KrushiBillERP.Views.FarmerDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Add Farmer" Height="420" Width="560" WindowStartupLocation="CenterOwner" ResizeMode="CanReSize">
+        Title="Add Farmer" Height="420" Width="560" MinWidth="500" MinHeight="380" WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip">
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

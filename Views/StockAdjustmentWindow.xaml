@@ -1,7 +1,7 @@
 <Window x:Class="KrushiBillERP.Views.StockAdjustmentWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Stock Adjustment" Height="540" Width="680" 
+        Title="Stock Adjustment" Height="540" Width="680" MinWidth="600" MinHeight="480"
         WindowStartupLocation="CenterOwner" Background="#F4F6F5">
     <Grid Margin="20">
         <Grid.RowDefinitions>

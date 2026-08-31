@@ -400,7 +400,9 @@
                                 <DataGrid x:Name="GridItems" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False"
                                           GridLinesVisibility="Horizontal" HeadersVisibility="Column" RowHeight="42"
                                           Background="White" BorderThickness="1" BorderBrush="#E0E5E2"
-                                          Style="{StaticResource PremiumDataGridStyle}">
+                                          Style="{StaticResource PremiumDataGridStyle}"
+                                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
                                             <Setter Property="Background" Value="#F8FAF9"/>

@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="KrushiBill ERP - Login"
         Height="520" Width="900"
+        MinWidth="700" MinHeight="460"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize"
+        ResizeMode="CanResizeWithGrip"
         Icon="/Assets/logo.ico">
     <Grid>
         <Grid.ColumnDefinitions>

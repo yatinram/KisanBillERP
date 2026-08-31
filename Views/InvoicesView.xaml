@@ -323,7 +323,10 @@
                 <DataGrid x:Name="GridInvoices" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
                           CanUserAddRows="False" GridLinesVisibility="None" HeadersVisibility="Column"
                           Background="White" BorderThickness="1" BorderBrush="{StaticResource BorderColor}"
-                          Style="{StaticResource PremiumDataGridStyle}" ColumnWidth="*"
+                          Style="{StaticResource PremiumDataGridStyle}"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"
                           Visibility="Collapsed">
 
                     <DataGrid.Resources>

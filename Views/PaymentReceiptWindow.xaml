@@ -1,7 +1,7 @@
 <Window x:Class="KrushiBillERP.Views.PaymentReceiptWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="New Payment Receipt" Height="850" Width="1060"
+        Title="New Payment Receipt" Height="850" Width="1060" MinWidth="900" MinHeight="660"
         WindowStartupLocation="CenterOwner" Background="#F4F6F5">
 
     <Window.Resources>
@@ -291,7 +291,9 @@
 
                         <DataGrid x:Name="GridAllocations" AutoGenerateColumns="False" CanUserAddRows="False"
                                   GridLinesVisibility="Horizontal" HeadersVisibility="Column" RowHeight="38"
-                                  MaxHeight="250" Background="White" BorderThickness="1" BorderBrush="#E5EAE7">
+                                  MaxHeight="250" Background="White" BorderThickness="1" BorderBrush="#E5EAE7"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">
                                     <Setter Property="Background" Value="#F8FAF9"/>

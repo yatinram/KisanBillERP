@@ -304,9 +304,10 @@
                 <DataGrid x:Name="GridStock" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
                           CanUserAddRows="False" CanUserDeleteRows="False" GridLinesVisibility="None" HeadersVisibility="Column"
                           Background="White" BorderThickness="0"
-                          Style="{StaticResource PremiumDataGridStyle}" ColumnWidth="*" RowHeight="52"
+                          Style="{StaticResource PremiumDataGridStyle}" RowHeight="52"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <DataGrid.Resources>
                         <Style x:Key="CellTextBlockCenter" TargetType="TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center"/>

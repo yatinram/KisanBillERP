@@ -80,6 +80,15 @@ namespace KrushiBillERP.Views
                 int alreadyReturned = DatabaseHelper.GetAlreadyReturnedSalesQty(ii.Id);
                 int returnable = Math.Max(0, ii.Qty - alreadyReturned);
 
+                decimal effectiveRate = ii.Rate;
+                if (inv.SubTotal > 0 && inv.Discount > 0)
+                {
+                    decimal itemSubTotal = ii.Qty * ii.Rate;
+                    decimal itemDiscount = (itemSubTotal / inv.SubTotal) * inv.Discount;
+                    decimal netItemTotal = Math.Max(0m, itemSubTotal - itemDiscount);
+                    effectiveRate = ii.Qty > 0 ? (netItemTotal / ii.Qty) : ii.Rate;
+                }
+
                 var item = new SalesReturnItem
                 {
                     SalesReturnItemId = idx++,
@@ -93,7 +102,7 @@ namespace KrushiBillERP.Views
                     AlreadyReturnedQuantity = alreadyReturned,
                     ReturnableQuantity = returnable,
                     ReturnQuantity = 0,
-                    Rate = ii.Rate,
+                    Rate = Math.Round(effectiveRate, 2, MidpointRounding.AwayFromZero),
                     GstPercent = ii.GstPercent,
                     Amount = 0m
                 };
